@@ -1,367 +1,212 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OmniTavern v4.1</title>
+    <title>OmniTavern v6.3 Final</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <style>
-        /* --- 核心变量与重置 --- */
+        /* --- 核心变量 --- */
         :root {
             --bg-base: #0f1117;
-            --bg-gradient: radial-gradient(circle at top left, #1a1b26, #0f1117);
-            --glass-panel: rgba(30, 32, 40, 0.75);
+            --bg-gradient: radial-gradient(circle at top left, #1f2335, #0f1117);
+            --glass-panel: rgba(30, 32, 40, 0.94);
             --glass-border: rgba(255, 255, 255, 0.08);
-            
             --primary: #7aa2f7;
             --primary-hover: #5d87e5;
             --danger: #f7768e;
+            --success: #9ece6a;
+            --warning: #e0af68;
             --text-main: #c0caf5;
             --text-muted: #787c99;
-            
             --bubble-me: #3d59a1;
             --bubble-ai: #24283b;
-            
-            --radius-md: 12px;
-            --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            margin: 0; 
-            font-family: 'Noto Sans SC', sans-serif; 
-            background: var(--bg-base); 
-            background-image: var(--bg-gradient);
-            color: var(--text-main); 
-            height: 100vh; 
-            overflow: hidden; 
-            background-size: cover; 
-            background-position: center; 
-            transition: background-image 0.5s ease;
+            margin: 0; font-family: 'Noto Sans SC', sans-serif; 
+            background: var(--bg-base); background-image: var(--bg-gradient);
+            color: var(--text-main); height: 100vh; overflow: hidden; 
+            background-size: cover; background-position: center;
         }
 
-        /* 滚动条 */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
         #app { display: flex; height: 100%; width: 100%; position: relative; }
 
         /* --- 侧边栏 --- */
         .sidebar { 
-            width: 320px; 
-            background: var(--glass-panel); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid var(--glass-border); 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 100; 
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: var(--shadow-lg);
+            width: 320px; background: var(--glass-panel); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column;
+            z-index: 100; transition: transform 0.3s ease; box-shadow: 5px 0 30px rgba(0,0,0,0.5);
         }
-
-        .sidebar-header { 
-            padding: 20px; 
-            border-bottom: 1px solid var(--glass-border); 
-            font-weight: 700; 
-            font-size: 1.1rem;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            color: white;
-            background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
-        }
-
-        /* 导航 Tab */
-        .nav-tabs { 
-            display: flex; 
-            background: rgba(0,0,0,0.2); 
-            padding: 5px;
-            margin: 10px;
-            border-radius: var(--radius-md);
-        }
-        .nav-item { 
-            flex: 1; 
-            padding: 8px; 
-            text-align: center; 
-            cursor: pointer; 
-            color: var(--text-muted); 
-            font-size: 0.85rem;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-        .nav-item:hover { color: var(--text-main); }
-        .nav-item.active { 
-            color: white; 
-            background: var(--primary); 
-            font-weight: 500;
-            box-shadow: 0 2px 10px rgba(122, 162, 247, 0.3);
-        }
-
-        .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; animation: fadeIn 0.3s; }
-        .tab-content.active { display: block; }
-
+        
+        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--glass-border); font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        
+        .nav-tabs { display: flex; background: rgba(0,0,0,0.3); padding: 4px; margin: 10px; border-radius: 8px; }
+        .nav-item { flex: 1; padding: 8px; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 0.85rem; border-radius: 6px; transition: 0.2s; }
+        .nav-item.active { color: white; background: var(--primary); font-weight: 500; }
+        
+        .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- 控件 --- */
-        .form-group { margin-bottom: 18px; }
-        .form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-        
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; font-weight: bold; }
         .form-control { 
-            width: 100%; 
-            padding: 10px 12px; 
-            background: rgba(0,0,0,0.3); 
-            border: 1px solid var(--glass-border); 
-            border-radius: 8px; 
-            color: white; 
-            font-size: 14px; 
-            transition: border-color 0.2s, background 0.2s;
-            font-family: inherit;
+            width: 100%; padding: 10px; background: rgba(0,0,0,0.3); 
+            border: 1px solid var(--glass-border); border-radius: 8px; 
+            color: white; font-size: 14px; font-family: inherit;
         }
         .form-control:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
-
-        /* 按钮 */
-        .btn { 
-            width: 100%; 
-            padding: 10px; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            color: white; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 6px; 
-            font-size: 0.9rem; 
-            font-weight: 500;
-            transition: all 0.2s;
-        }
+        
+        .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.9rem; transition: 0.2s; }
         .btn:active { transform: scale(0.98); }
-        .btn-primary { background: var(--primary); box-shadow: 0 4px 15px rgba(122, 162, 247, 0.2); }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-danger { background: rgba(247, 118, 142, 0.2); color: var(--danger); border: 1px solid rgba(247, 118, 142, 0.3); }
-        .btn-ghost { background: transparent; color: var(--text-muted); width: auto; padding: 6px; border-radius: 6px; }
-        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: white; }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: rgba(247, 118, 142, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-ghost { background: transparent; color: var(--text-muted); width: auto; padding: 6px; }
 
-        /* 列表项 */
-        .list-item { 
-            display: flex; 
-            padding: 12px; 
-            margin-bottom: 8px; 
-            background: rgba(255,255,255,0.03); 
-            border-radius: 10px; 
-            cursor: pointer; 
-            border: 1px solid transparent; 
-            align-items: center; 
-            gap: 12px; 
-            position: relative; 
-            transition: all 0.2s;
-        }
-        .list-item:hover { background: rgba(255,255,255,0.06); }
-        .list-item.active { 
-            border-color: var(--primary); 
-            background: rgba(122, 162, 247, 0.1); 
-            box-shadow: inset 0 0 20px rgba(122, 162, 247, 0.05);
-        }
-        .avatar-sm { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; background: #222; flex-shrink: 0; }
-        .persona-tag { font-size: 0.65rem; background: var(--primary); color: #fff; padding: 2px 6px; border-radius: 4px; position: absolute; top: 8px; right: 8px; display: none; font-weight: bold; }
-        .list-item.active .persona-tag { display: block; }
+        /* 开关控件 */
+        .switch-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; }
+        .switch-label { font-size: 0.85rem; font-weight: bold; color: var(--text-main); }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        .list-item { display: flex; padding: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.03); border-radius: 10px; cursor: pointer; align-items: center; gap: 10px; }
+        .list-item.active { border: 1px solid var(--primary); background: rgba(122, 162, 247, 0.1); }
+        .avatar-sm { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: #222; }
 
         /* --- 主界面 --- */
-        .main-stage { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            background: rgba(0,0,0,0.2); 
-            backdrop-filter: blur(5px);
+        .main-stage { flex: 1; display: flex; flex-direction: column; position: relative; background: rgba(0,0,0,0.2); width: 100%; }
+        
+        .top-bar { 
+            height: 54px; padding: 0 10px; background: var(--glass-panel); 
+            border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; 
+            justify-content: space-between; gap: 10px; z-index: 10;
         }
 
-        .top-bar { 
-            height: 60px; 
-            padding: 0 15px; 
-            background: var(--glass-panel); 
-            border-bottom: 1px solid var(--glass-border); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            gap: 10px;
-            z-index: 10;
+        /* 顶部状态栏 */
+        .top-status-area { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+        
+        /* 上下文 Token 徽章 (新增) */
+        .ctx-badge {
+            font-size: 0.75rem; color: #d0d0ff; background: rgba(122, 162, 247, 0.15); 
+            border: 1px solid rgba(122, 162, 247, 0.3); padding: 4px 10px; border-radius: 12px;
+            display: flex; align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0;
+            transition: all 0.3s;
         }
+
+        /* 记忆面板 */
+        #memoryPanel {
+            background: rgba(15, 17, 23, 0.95); border-bottom: 1px solid var(--glass-border);
+            padding: 15px; display: none; flex-shrink: 0; animation: slideDown 0.3s;
+        }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .memory-editor { width: 100%; height: 120px; background: rgba(0,0,0,0.3); border: 1px solid var(--primary); color: #cfc; padding: 10px; border-radius: 8px; resize: vertical; font-family: inherit; font-size: 0.9rem; }
+        .mem-toolbar { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
 
         /* 聊天区 */
-        .chat-container { 
-            flex: 1; 
-            padding: 20px; 
-            overflow-y: auto; 
-            scroll-behavior: smooth; 
-            display: flex;
-            flex-direction: column;
-        }
+        .chat-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; scroll-behavior: smooth; }
         
-        .msg-row { display: flex; gap: 12px; margin-bottom: 24px; animation: slideIn 0.3s ease; }
+        .msg-row { display: flex; gap: 10px; margin-bottom: 20px; width: 100%; animation: fadeIn 0.2s; position: relative; }
         .msg-row.user { flex-direction: row-reverse; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .msg-avatar { 
-            width: 48px; height: 48px; 
-            border-radius: 14px; 
-            object-fit: cover; 
-            border: 2px solid rgba(255,255,255,0.1); 
-            flex-shrink: 0; 
-            background: #000;
-        }
-        
-        .msg-body { max-width: 80%; display: flex; flex-direction: column; }
-        .msg-row.user .msg-body { align-items: flex-end; }
-        
-        .msg-name { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; padding: 0 4px; }
-        
+        .msg-avatar { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+        .msg-body { max-width: 85%; display: flex; flex-direction: column; position: relative; }
+        .msg-name { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; padding: 0 2px; }
         .msg-bubble { 
-            padding: 12px 18px; 
-            border-radius: 18px; 
-            line-height: 1.6; 
-            word-wrap: break-word; 
-            font-size: 0.95rem; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 10px 14px; border-radius: 14px; line-height: 1.5; word-wrap: break-word; font-size: 0.95rem; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .msg-row.user .msg-bubble { 
-            background: linear-gradient(135deg, var(--bubble-me), #2d4278);
-            color: white; 
-            border-top-right-radius: 4px; 
-        }
-        .msg-row.char .msg-bubble { 
-            background: var(--bubble-ai); 
-            border: 1px solid rgba(255,255,255,0.05);
-            color: #dbe0eb; 
-            border-top-left-radius: 4px; 
-        }
-        
-        .msg-bubble p { margin: 0 0 8px 0; }
-        .msg-bubble p:last-child { margin-bottom: 0; }
+        .msg-row.user .msg-bubble { background: linear-gradient(135deg, var(--bubble-me), #2d4278); color: white; border-top-right-radius: 2px; }
+        .msg-row.char .msg-bubble { background: var(--bubble-ai); border: 1px solid rgba(255,255,255,0.08); color: #dbe0eb; border-top-left-radius: 2px; }
+        .msg-row.error .msg-bubble { border: 1px solid var(--danger); background: rgba(247, 118, 142, 0.1); }
 
-        /* 输入区 */
-        .input-area { 
-            padding: 20px; 
-            background: linear-gradient(to top, rgba(15,17,23,0.95), transparent);
-        }
-        .input-wrapper { 
-            display: flex; 
-            gap: 10px; 
-            background: rgba(30, 32, 40, 0.9); 
-            backdrop-filter: blur(10px);
-            border-radius: 24px; 
-            padding: 8px 8px 8px 16px; 
-            border: 1px solid rgba(255,255,255,0.15); 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            align-items: flex-end;
-        }
+        /* 元数据 */
+        .msg-meta { font-size: 0.65rem; color: rgba(255,255,255,0.35); margin-top: 5px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .msg-row.user .msg-meta { justify-content: flex-end; }
+        .meta-tag { display: flex; align-items: center; gap: 3px; background: rgba(0,0,0,0.2); padding: 1px 6px; border-radius: 4px; }
 
-        textarea#userInput { 
-            flex: 1; 
-            background: transparent; 
-            border: none; 
-            color: white; 
-            resize: none; 
-            height: 44px; 
-            max-height: 150px; 
-            font-size: 16px; 
-            font-family: inherit;
-            padding: 10px 0;
-        }
-
-        .send-btn { 
-            width: 44px; height: 44px; 
-            border-radius: 50%; 
-            background: var(--primary); 
-            border: none; 
-            color: white; 
-            font-size: 1.1rem; 
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .send-btn:hover { transform: scale(1.05); background: var(--primary-hover); }
-
-        /* 模态框 */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 90; display: none; opacity: 0; transition: opacity 0.3s; }
-        .overlay.active { display: block; opacity: 1; }
-        
-        .modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; pointer-events: none; }
-        .modal.active { display: flex; pointer-events: auto; }
-        
-        .modal-content { 
-            background: #1a1b26; 
-            width: 90%; max-width: 450px; max-height: 90vh; 
-            border-radius: 16px; padding: 24px; 
-            overflow-y: auto; 
-            border: 1px solid var(--glass-border); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        /* 操作栏 */
+        .msg-actions { margin-top: 4px; display: flex; gap: 8px; opacity: 0; transition: opacity 0.2s; }
+        .msg-row:hover .msg-actions { opacity: 1; }
+        .msg-row.user .msg-actions { justify-content: flex-end; }
+        .action-btn { background: rgba(255,255,255,0.05); border: none; color: #888; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+        .action-btn.magic { color: var(--success); }
 
         @media (max-width: 768px) {
+            .msg-actions { opacity: 1; } 
+            .action-btn { background: transparent; padding: 0; width: 30px; height: 30px; font-size: 0.9rem; }
             .sidebar { position: fixed; height: 100%; transform: translateX(-110%); box-shadow: none; }
             .sidebar.open { transform: translateX(0); box-shadow: 5px 0 30px rgba(0,0,0,0.5); }
+            .msg-body { max-width: 90%; }
+            .ctx-badge { font-size: 0.7rem; padding: 3px 6px; }
         }
+
+        .input-area { padding: 15px; background: linear-gradient(to top, rgba(15,17,23,0.98), transparent); }
+        .input-wrapper { display: flex; gap: 8px; background: rgba(30, 32, 40, 0.95); border-radius: 20px; padding: 8px 8px 8px 15px; border: 1px solid rgba(255,255,255,0.15); align-items: flex-end; }
+        textarea#userInput { flex: 1; background: transparent; border: none; color: white; resize: none; height: 40px; max-height: 120px; font-size: 16px; padding: 8px 0; }
+        .send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); border: none; color: white; font-size: 1.1rem; flex-shrink: 0; }
+
+        /* 弹窗 */
+        .modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        .modal.active { display: flex; }
+        .modal-content { background: #1a1b26; width: 90%; max-width: 450px; max-height: 90vh; border-radius: 16px; padding: 20px; overflow-y: auto; border: 1px solid var(--glass-border); }
+        .memory-status-bar { font-size: 0.8rem; color: var(--success); display:flex; align-items:center; gap:5px; background:rgba(158,206,106,0.1); padding:5px 10px; border-radius:12px; cursor: pointer; flex-shrink: 0; }
+
+        /* 100轮提示 Toast (新增) */
+        .toast-container { position: absolute; bottom: 80px; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; z-index: 50; }
+        .toast {
+            background: linear-gradient(90deg, #333, #000); border: 1px solid var(--warning); 
+            color: var(--warning); padding: 10px 20px; border-radius: 50px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); pointer-events: auto;
+            display: none; align-items: center; gap: 15px; animation: popUp 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        @keyframes popUp { from { transform: translateY(20px) scale(0.8); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
-
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span style="display:flex; align-items:center; gap:10px;">
-                <i class="fas fa-dice-d20" style="color:var(--primary)"></i> OmniTavern
-            </span>
-            <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-chevron-left"></i></button>
+            <span><i class="fas fa-microchip" style="color:var(--primary)"></i> OmniTavern v6.3</span>
+            <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
         </div>
-
         <div class="nav-tabs">
-            <div class="nav-item active" onclick="switchTab('chars')"><i class="fas fa-users"></i> 角色</div>
-            <div class="nav-item" onclick="switchTab('user')"><i class="fas fa-user-tag"></i> 身份</div>
-            <div class="nav-item" onclick="switchTab('settings')"><i class="fas fa-cog"></i> 设置</div>
+            <div class="nav-item active" onclick="switchTab('chars')">角色</div>
+            <div class="nav-item" onclick="switchTab('user')">身份</div>
+            <div class="nav-item" onclick="switchTab('settings')">设置</div>
         </div>
-
         <div id="tab-chars" class="tab-content active">
-            <button class="btn btn-primary" onclick="openCharEditor()" style="margin-bottom:15px;"><i class="fas fa-plus"></i> 创建新角色</button>
-            <div id="charList"></div>
+            <button class="btn btn-primary" onclick="openCharEditor()"><i class="fas fa-plus"></i> 新建角色</button>
+            <div id="charList" style="margin-top:15px;"></div>
         </div>
-
         <div id="tab-user" class="tab-content">
-            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:15px; font-size:0.8rem; color:#aaa;">
-                <i class="fas fa-info-circle"></i> 你可以创建多个身份 (Persona)。
-            </div>
             <button class="btn btn-primary" onclick="createNewUserPersona()"><i class="fas fa-user-plus"></i> 新建身份</button>
-            <div id="userPersonaList" style="max-height: 200px; overflow-y: auto; margin: 15px 0;"></div>
-            
+            <div id="userPersonaList" style="margin: 15px 0;"></div>
             <div id="userEditArea" style="display:none; border-top:1px solid var(--glass-border); padding-top:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="font-size:0.9rem; font-weight:bold; color:var(--primary);">编辑身份</span>
-                    <button class="btn-ghost" style="color:var(--danger);" onclick="deleteUserPersona()"><i class="fas fa-trash-alt"></i></button>
-                </div>
                 <div class="form-group"><label class="form-label">昵称</label><input type="text" id="userName" class="form-control" onchange="saveCurrentUser()"></div>
-                <div class="form-group"><label class="form-label">头像</label><input type="text" id="userAvatar" class="form-control" onchange="saveCurrentUser()"></div>
-                <div class="form-group"><label class="form-label">人设描述</label><textarea id="userDesc" class="form-control" style="height: 100px;" onchange="saveCurrentUser()"></textarea></div>
+                <div class="form-group"><label class="form-label">头像URL</label><input type="text" id="userAvatar" class="form-control" onchange="saveCurrentUser()"></div>
+                <div class="form-group"><label class="form-label">简介</label><textarea id="userDesc" class="form-control" style="height: 60px;" onchange="saveCurrentUser()"></textarea></div>
+                <button class="btn-ghost" style="color:var(--danger); width:100%;" onclick="deleteUserPersona()"><i class="fas fa-trash"></i> 删除此身份</button>
             </div>
         </div>
-
         <div id="tab-settings" class="tab-content">
-            <div class="form-group"><label class="form-label">API Host</label><input type="text" id="apiHost" class="form-control"></div>
+            <div class="form-group"><label class="form-label">API Host</label><input type="text" id="apiHost" class="form-control" placeholder="https://api.openai.com/v1"></div>
             <div class="form-group"><label class="form-label">API Key</label><input type="password" id="apiKey" class="form-control"></div>
-            
             <div class="form-group">
                 <label class="form-label">模型</label>
                 <div style="display:flex; gap:8px;">
@@ -371,47 +216,65 @@
                         <option value="deepseek-chat">deepseek-chat</option>
                         <option value="custom">-- 自定义 --</option>
                     </select>
-                    <button class="btn btn-primary" style="width:50px;" onclick="fetchModels()"><i class="fas fa-sync"></i></button>
+                    <button class="btn btn-primary" style="width:40px;" onclick="fetchModels()"><i class="fas fa-sync"></i></button>
                 </div>
                 <input type="text" id="customModelInput" class="form-control" style="display:none; margin-top:8px;" onchange="saveSettings()">
             </div>
-
-            <div class="form-group">
-                <label class="form-label">温度 (Temperature)</label>
-                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;" onchange="saveSettings()">
+            <div class="switch-group">
+                <span class="switch-label">开启流式回复 (Stream)</span>
+                <label class="switch"><input type="checkbox" id="streamToggle" onchange="saveSettings()" checked><span class="slider"></span></label>
             </div>
-            
             <div class="form-group">
-                <label class="form-label">背景图片 URL</label>
-                <input type="text" id="bgUrl" class="form-control" onchange="saveSettings()">
+                <label class="form-label">温度 (Temperature): <span id="tempVal">0.8</span></label>
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;" oninput="document.getElementById('tempVal').innerText=this.value; saveSettings()">
             </div>
-            
-            <button class="btn btn-danger" onclick="nukeData()" style="margin-top:30px;">清空所有数据</button>
+            <div class="form-group">
+                <label class="form-label">携带历史消息数量 (0=无限)</label>
+                <input type="number" id="ctxLimit" class="form-control" value="20" min="0" placeholder="例如: 300" onchange="saveSettings()">
+            </div>
+            <div class="form-group"><label class="form-label">背景图 URL</label><input type="text" id="bgUrl" class="form-control" onchange="saveSettings()"></div>
+            <button class="btn btn-danger" onclick="nukeData()" style="margin-top:20px;">重置所有数据</button>
         </div>
     </aside>
 
     <main class="main-stage">
         <div class="top-bar">
-            <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="top-status-area">
+                <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <select id="sessionSelect" onchange="switchSession(this.value)" class="form-control" style="padding:5px 10px; height:36px; max-width:140px;"></select>
+                <div class="ctx-badge" id="ctxTokenDisplay" title="当前发送给AI的总上下文Token数 (上次请求数据)"><i class="fas fa-weight-hanging"></i> Context: 0</div>
+                <div id="memoryToggleBtn" class="memory-status-bar" onclick="toggleMemoryPanel()" style="display:none;">
+                    <i class="fas fa-brain"></i>
+                </div>
+            </div>
             
-            <div class="timeline-controls" id="topControls" style="display:none; flex:1; align-items:center; gap:8px; overflow:hidden;">
-                <div style="flex:1; display:flex; align-items:center; gap:5px; max-width:300px;">
-                    <select id="sessionSelect" onchange="switchSession(this.value)" class="form-control" style="padding:5px 10px; height:36px; text-overflow:ellipsis;"></select>
-                    <button class="btn-ghost" onclick="renameCurrentSession()" title="重命名当前对话标题"><i class="fas fa-pen"></i></button>
-                </div>
-                
-                <div style="display:flex; gap:5px; margin-left:auto;">
-                    <button class="btn-ghost" onclick="createNewSession()" title="新剧情"><i class="fas fa-plus"></i></button>
-                    <button class="btn-ghost" onclick="forkSession()" title="分支"><i class="fas fa-code-branch"></i></button>
-                    <button class="btn-ghost" style="color:var(--danger);" onclick="deleteCurrentSession()" title="删除"><i class="fas fa-trash"></i></button>
-                </div>
+            <div style="display:flex; gap:2px; flex-shrink: 0;">
+                <button class="btn-ghost" onclick="createNewSession()"><i class="fas fa-plus"></i></button>
+                <button class="btn-ghost" onclick="renameCurrentSession()"><i class="fas fa-pen"></i></button>
+                <button class="btn-ghost" style="color:var(--danger);" onclick="deleteCurrentSession()"><i class="fas fa-trash"></i></button>
             </div>
         </div>
 
-        <div class="chat-container" id="chatContainer">
-            <div style="text-align:center; margin-top:100px; color:rgba(255,255,255,0.3);">
-                <i class="fas fa-comments" style="font-size:3rem; margin-bottom:15px;"></i>
-                <p>请选择或创建角色</p>
+        <div id="memoryPanel">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; color:#aaa; font-size:0.85rem;">
+                <span><i class="fas fa-brain"></i> 长期记忆编辑器</span>
+                <span onclick="toggleMemoryPanel()" style="cursor:pointer;"><i class="fas fa-chevron-up"></i> 收起</span>
+            </div>
+            <textarea id="memoryEditor" class="memory-editor" placeholder="在此处手动输入记忆，或点击下方AI总结..."></textarea>
+            <div class="mem-toolbar">
+                <button class="btn-ghost" style="font-size:0.8rem; color:var(--danger);" onclick="clearMemory()">清空</button>
+                <button class="btn-ghost" style="font-size:0.8rem; border:1px solid var(--primary); color:var(--primary);" onclick="triggerAutoSummary()"><i class="fas fa-magic"></i> AI 自动总结</button>
+                <button class="btn-primary" style="width:auto; padding:5px 15px; font-size:0.8rem;" onclick="saveMemory()">保存生效</button>
+            </div>
+        </div>
+
+        <div class="chat-container" id="chatContainer"></div>
+
+        <div class="toast-container">
+            <div id="summaryToast" class="toast">
+                <span><i class="fas fa-bell"></i> 已经聊了 <span id="toastTurnCount">100</span> 轮了，建议进行记忆总结。</span>
+                <button class="btn-primary" style="width:auto; font-size:0.8rem; padding:5px 15px;" onclick="acceptSummaryToast()">去总结</button>
+                <button class="btn-ghost" style="width:auto;" onclick="closeToast()"><i class="fas fa-times"></i></button>
             </div>
         </div>
 
@@ -421,38 +284,40 @@
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
             <div style="text-align:center;">
-                <button id="stopBtn" class="btn btn-danger" style="display:none; width:auto; padding:5px 15px; margin:10px auto 0; font-size:0.8rem;" onclick="stopGen()"><i class="fas fa-stop"></i> 停止生成</button>
+                <button id="stopBtn" class="btn btn-danger" style="display:none; width:auto; padding:5px 15px; margin:10px auto 0; font-size:0.8rem;" onclick="stopGen()"><i class="fas fa-stop"></i> 停止</button>
             </div>
         </div>
     </main>
 
     <div class="modal" id="charModal">
         <div class="modal-content">
-            <h3>编辑角色</h3>
+            <h3>角色设定</h3>
             <input type="hidden" id="editId">
             <div class="form-group"><label class="form-label">名字</label><input type="text" id="editName" class="form-control"></div>
             <div class="form-group"><label class="form-label">头像 URL</label><input type="text" id="editAvatar" class="form-control"></div>
-            <div class="form-group"><label class="form-label">角色设定</label><textarea id="editDesc" class="form-control" style="height:80px;"></textarea></div>
-            <div class="form-group"><label class="form-label">世界观</label><textarea id="editWorld" class="form-control" style="height:60px;"></textarea></div>
-            <div class="form-group"><label class="form-label">开场白</label><textarea id="editFirst" class="form-control" style="height:60px;"></textarea></div>
-            
+            <div class="form-group"><label class="form-label">Persona (核心设定)</label><textarea id="editDesc" class="form-control" style="height:80px;"></textarea></div>
+            <div class="form-group"><label class="form-label" style="color:var(--success);">Lore (过往故事/背景)</label><textarea id="editStory" class="form-control" style="height:80px;" placeholder="角色的背景故事..."></textarea></div>
+            <div class="form-group"><label class="form-label">开场白 (First Message)</label><textarea id="editFirst" class="form-control" style="height:60px;" placeholder="第一条发送的消息"></textarea></div>
             <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" onclick="saveChar()">保存</button>
-                <button class="btn btn-ghost" onclick="closeModal()">取消</button>
-                <button class="btn btn-danger" onclick="deleteChar()">删除</button>
+                <button class="btn-ghost" onclick="closeModal()">取消</button>
+                <button class="btn-danger" onclick="deleteChar()">删除</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'omni_v4_data'; 
+    const DB_KEY = 'omni_v6_3_data'; 
     const DEF_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
     const DEF_USER_AVATAR = 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png';
     
     let appData = {
         chars: [], chats: {}, user_personas: [], active_user_id: null,
-        settings: { apiHost: "https://api.openai.com/v1", apiKey: "", model: "gpt-3.5-turbo", temp: 0.8, bgUrl: "" }
+        settings: { 
+            apiHost: "https://api.openai.com/v1", apiKey: "", model: "gpt-3.5-turbo", 
+            temp: 0.8, bgUrl: "", ctxLimit: 20, stream: true
+        }
     };
     let activeCharId = null, activeSessionId = null, abortCtrl = null;
 
@@ -460,119 +325,16 @@
         const raw = localStorage.getItem(DB_KEY);
         if(raw) {
             appData = {...appData, ...JSON.parse(raw)};
+            if(appData.settings.stream === undefined) appData.settings.stream = true;
         } else {
-            // 简单迁移尝试
-            const v3 = localStorage.getItem('omni_ultimate_v3');
-            if(v3) appData = {...appData, ...JSON.parse(v3)};
+            const old = localStorage.getItem('omni_v6_2_data') || localStorage.getItem('omni_v6_data');
+            if(old) appData = {...appData, ...JSON.parse(old)};
         }
         if(appData.user_personas.length === 0) createNewUserPersona(false);
         fillSettingsUI(); renderCharList(); renderUserList(); updateBg();
     };
 
-    /* --- 新增功能：重命名对话标题 --- */
-    function renameCurrentSession() {
-        if(!activeCharId || !activeSessionId) return;
-        const session = appData.chats[activeCharId].sessions[activeSessionId];
-        const newName = prompt("请输入新的对话标题:", session.name);
-        if(newName && newName.trim() !== "") {
-            session.name = newName.trim();
-            saveData();
-            renderSessionSelect();
-        }
-    }
-
-    /* --- 身份系统 --- */
-    function renderUserList() {
-        const list = document.getElementById('userPersonaList'); list.innerHTML = '';
-        appData.user_personas.forEach(p => {
-            const div = document.createElement('div');
-            div.className = `list-item ${p.id === appData.active_user_id ? 'active' : ''}`;
-            div.onclick = () => switchUserPersona(p.id);
-            div.innerHTML = `<img src="${p.avatar||DEF_USER_AVATAR}" class="avatar-sm"><div style="flex:1;overflow:hidden;"><div style="font-weight:bold;font-size:0.9rem;">${p.name}</div></div><span class="persona-tag">USING</span>`;
-            list.appendChild(div);
-        });
-        const current = getCurrentUser();
-        const editArea = document.getElementById('userEditArea');
-        if(current && current.id) {
-            editArea.style.display = 'block';
-            document.getElementById('userName').value = current.name;
-            document.getElementById('userAvatar').value = current.avatar;
-            document.getElementById('userDesc').value = current.desc;
-        }
-    }
-
-    function createNewUserPersona(render = true) {
-        const newId = Date.now().toString();
-        appData.user_personas.push({ id: newId, name: "New User", avatar: "", desc: "A traveler." });
-        appData.active_user_id = newId;
-        saveData(); if(render) renderUserList();
-    }
-    function switchUserPersona(id) { appData.active_user_id = id; saveData(); renderUserList(); if(activeSessionId) renderChatUI(); }
-    function saveCurrentUser() {
-        const c = appData.user_personas.find(p => p.id === appData.active_user_id);
-        if(!c) return;
-        c.name = document.getElementById('userName').value;
-        c.avatar = document.getElementById('userAvatar').value;
-        c.desc = document.getElementById('userDesc').value;
-        saveData(); renderUserList(); if(activeSessionId) renderChatUI();
-    }
-    function deleteUserPersona() {
-        if(appData.user_personas.length <= 1) return alert("至少保留一个身份");
-        if(confirm("删除此身份？")) {
-            appData.user_personas = appData.user_personas.filter(p => p.id !== appData.active_user_id);
-            appData.active_user_id = appData.user_personas[0].id;
-            saveData(); renderUserList();
-        }
-    }
-    function getCurrentUser() { return appData.user_personas.find(p => p.id === appData.active_user_id) || {}; }
-
-    /* --- 聊天逻辑 --- */
-    function getCharData(cid) {
-        if (!appData.chats[cid]) appData.chats[cid] = { sessions: {}, currentSessionId: null };
-        return appData.chats[cid];
-    }
-    function loadChar(id) {
-        activeCharId = id;
-        const cData = getCharData(id);
-        document.getElementById('topControls').style.display = 'flex';
-        if(window.innerWidth <= 768) toggleSidebar();
-        if(Object.keys(cData.sessions).length === 0) createNewSession(id, false);
-        if(!cData.currentSessionId || !cData.sessions[cData.currentSessionId]) cData.currentSessionId = Object.keys(cData.sessions)[0];
-        switchSession(cData.currentSessionId); renderCharList();
-    }
-    function switchSession(sid) {
-        activeSessionId = sid;
-        getCharData(activeCharId).currentSessionId = sid;
-        saveData(); renderSessionSelect(); renderChatUI();
-    }
-    function createNewSession(charId = activeCharId, switchNow = true) {
-        if(!charId) return;
-        const newId = Date.now().toString();
-        const char = appData.chars.find(c => c.id === charId);
-        getCharData(charId).sessions[newId] = {
-            id: newId, name: "新对话 " + new Date().toLocaleTimeString().slice(0,5),
-            messages: char.firstMsg ? [{role:'assistant', content:char.firstMsg, meta:{time:Date.now()}}] : []
-        };
-        if(switchNow) switchSession(newId);
-        return newId;
-    }
-    function deleteCurrentSession() {
-        if(confirm("删除当前对话？")) {
-            delete getCharData(activeCharId).sessions[activeSessionId];
-            const remaining = Object.keys(getCharData(activeCharId).sessions);
-            if(remaining.length > 0) switchSession(remaining[0]); else createNewSession();
-            saveData();
-        }
-    }
-    function forkSession() {
-        if(!activeCharId || !activeSessionId) return;
-        const oldS = getCharData(activeCharId).sessions[activeSessionId];
-        const newId = Date.now().toString();
-        getCharData(activeCharId).sessions[newId] = {...JSON.parse(JSON.stringify(oldS)), id: newId, name: oldS.name + "(分支)"};
-        switchSession(newId);
-    }
-
-    /* --- 消息发送 --- */
+    /* --- Core --- */
     async function sendMessage() {
         if(!activeCharId || !activeSessionId) return;
         const input = document.getElementById('userInput');
@@ -581,187 +343,348 @@
 
         const session = appData.chats[activeCharId].sessions[activeSessionId];
         const user = getCurrentUser();
+        
         const userMsg = { role: 'user', content: text, meta: { time: Date.now(), userName: user.name, userAvatar: user.avatar } };
         session.messages.push(userMsg);
-        appendMsgUI(userMsg, true);
-        input.value = ''; input.style.height = '44px'; saveData();
-
-        // 自动命名第一个对话
+        
+        input.value = ''; input.style.height = '40px';
+        saveData(); renderChatUI(); 
+        
         if(session.messages.filter(m=>m.role==='user').length === 1) {
-            session.name = text.length > 10 ? text.substring(0, 10) : text;
-            renderSessionSelect();
+            session.name = text.substring(0, 15); renderSessionSelect();
         }
 
+        await triggerAIResponse(session);
+    }
+
+    async function triggerAIResponse(session) {
         const char = appData.chars.find(c => c.id === activeCharId);
-        const sys = `Role:${char.name}\nDesc:${char.desc}\nWorld:${char.world||''}\nUser:${user.name}\nUserDesc:${user.desc}`;
-        const msgs = [{role: "system", content: sys}, ...session.messages.slice(-20).map(m => ({role: m.role, content: m.content}))];
+        const user = getCurrentUser();
+        const isStream = appData.settings.stream;
+
+        let sysPrompt = `Role:${char.name}\nDesc:${char.desc}`;
+        if(char.story) sysPrompt += `\nLore:${char.story}`;
+        if(session.summary) sysPrompt += `\n[Long-term Memory]: ${session.summary}`;
+        sysPrompt += `\nUser:${user.name}\nUserDesc:${user.desc}`;
+
+        let limit = parseInt(appData.settings.ctxLimit);
+        if(isNaN(limit) || limit <= 0) limit = 99999;
+
+        const recentMsgs = session.messages.slice(-limit).map(m => ({role: m.role, content: m.content}));
+        const payload = [{role: "system", content: sysPrompt}, ...recentMsgs];
 
         document.querySelector('.send-btn').disabled = true;
         document.getElementById('stopBtn').style.display = 'block';
         const aiTempId = Date.now();
-        appendMsgUI({role:'assistant', content:'<i class="fas fa-spinner fa-spin"></i>', meta:{time:Date.now()}}, false, aiTempId);
+        const startTime = Date.now();
+        
+        appendMsgUI({role:'assistant', content:'<i class="fas fa-spinner fa-spin"></i>', meta:{time:startTime}}, false, session.messages.length, aiTempId);
         scrollToBottom();
 
         abortCtrl = new AbortController();
         let fullReply = "";
+        let finalUsage = null;
 
         try {
             const res = await fetch(`${appData.settings.apiHost}/chat/completions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${appData.settings.apiKey}` },
                 body: JSON.stringify({
-                    model: getSelectedModel(), messages: msgs, temperature: parseFloat(appData.settings.temp), stream: true
+                    model: getSelectedModel(), 
+                    messages: payload, 
+                    temperature: parseFloat(appData.settings.temp), 
+                    stream: isStream, 
+                    stream_options: isStream ? { include_usage: true } : undefined
                 }),
                 signal: abortCtrl.signal
             });
 
-            if(!res.ok) throw new Error("API Error");
-            
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            while(true) {
-                const {done, value} = await reader.read();
-                if(done) break;
-                const lines = decoder.decode(value).split('\n');
-                for(const line of lines) {
-                    if(line.startsWith('data: ') && line!=='data: [DONE]') {
-                        try {
-                            const delta = JSON.parse(line.slice(6)).choices[0].delta.content;
-                            if(delta) { fullReply += delta; updateMsgUI(aiTempId, fullReply); }
-                        } catch(e){}
+            if(!res.ok) throw new Error(`API Error: ${res.status}`);
+
+            if (isStream) {
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+                while(true) {
+                    const {done, value} = await reader.read();
+                    if(done) break;
+                    const lines = decoder.decode(value).split('\n');
+                    for(const line of lines) {
+                        if(line.startsWith('data: ')) {
+                            const jsonStr = line.slice(6);
+                            if(jsonStr === '[DONE]') continue;
+                            try {
+                                const json = JSON.parse(jsonStr);
+                                if(json.choices && json.choices[0].delta.content) {
+                                    fullReply += json.choices[0].delta.content;
+                                    updateMsgBubble(aiTempId, fullReply);
+                                }
+                                if(json.usage) finalUsage = json.usage;
+                            } catch(e){}
+                        }
                     }
                 }
+            } else {
+                const data = await res.json();
+                fullReply = data.choices[0].message.content;
+                finalUsage = data.usage;
+                updateMsgBubble(aiTempId, fullReply);
             }
             
-            const aiMsg = { role: 'assistant', content: fullReply, meta: { time: Date.now() } };
-            session.messages.push(aiMsg);
-            saveData(); updateMsgUI(aiTempId, fullReply, aiMsg.meta);
+            const endTime = Date.now();
+            const turnCount = session.messages.length + 1;
+            const meta = { 
+                time: endTime, duration: endTime - startTime, tokens: finalUsage,
+                turn: turnCount
+            };
 
-        } catch(e) { if(e.name!=='AbortError') updateMsgUI(aiTempId, "❌ " + e.message); }
-        finally {
+            const aiMsg = { role: 'assistant', content: fullReply, meta: meta };
+            session.messages.push(aiMsg);
+            saveData(); renderChatUI();
+            
+            // 更新顶部 Context 显示
+            updateContextDisplay(finalUsage ? finalUsage.prompt_tokens : 'N/A');
+
+            // 检查是否需要提示总结 (假设1条回复=1个turn，或者每累积100条消息)
+            // 这里逻辑：总消息数 % 200 == 0 (约100轮)
+            if(session.messages.length > 0 && session.messages.length % 200 === 0) {
+                showSummaryToast(session.messages.length / 2);
+            }
+
+        } catch(e) {
+            if(e.name !== 'AbortError') updateMsgBubble(aiTempId, "❌ " + e.message, true);
+        } finally {
             document.querySelector('.send-btn').disabled = false;
             document.getElementById('stopBtn').style.display = 'none';
             abortCtrl = null;
         }
     }
 
-    function stopGen() { if(abortCtrl) abortCtrl.abort(); }
+    /* --- New Features --- */
+    function updateContextDisplay(val) {
+        const d = document.getElementById('ctxTokenDisplay');
+        d.innerHTML = `<i class="fas fa-weight-hanging"></i> Context: ${val}`;
+    }
+
+    function showSummaryToast(rounds) {
+        document.getElementById('toastTurnCount').innerText = rounds;
+        document.getElementById('summaryToast').style.display = 'flex';
+        // 5秒后自动消失
+        setTimeout(() => { document.getElementById('summaryToast').style.display = 'none'; }, 8000);
+    }
+    function closeToast() { document.getElementById('summaryToast').style.display = 'none'; }
+    function acceptSummaryToast() {
+        closeToast();
+        toggleMemoryPanel(); // 打开面板
+        document.getElementById('memoryPanel').scrollIntoView({behavior:'smooth'});
+        triggerAutoSummary(); // 触发
+    }
+
+    /* --- Memory --- */
+    function toggleMemoryPanel() {
+        const panel = document.getElementById('memoryPanel');
+        const isHidden = panel.style.display === 'none';
+        panel.style.display = isHidden ? 'block' : 'none';
+        if(isHidden && activeSessionId) {
+            const s = appData.chats[activeCharId].sessions[activeSessionId];
+            document.getElementById('memoryEditor').value = s.summary || "";
+        }
+    }
+    function saveMemory() {
+        if(!activeSessionId) return;
+        appData.chats[activeCharId].sessions[activeSessionId].summary = document.getElementById('memoryEditor').value;
+        saveData(); toggleMemoryPanel(); renderChatUI();
+    }
+    function clearMemory() { document.getElementById('memoryEditor').value = ""; }
+    async function triggerAutoSummary() {
+        if(!activeSessionId) return;
+        const session = appData.chats[activeCharId].sessions[activeSessionId];
+        const btn = document.querySelector('button[onclick="triggerAutoSummary()"]');
+        const oldHtml = btn.innerHTML; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>...';
+        const context = session.messages.slice(-50).map(m => `${m.role}: ${m.content}`).join('\n');
+        const prompt = `Summarize key facts (in same language):\n${context}`;
+        try {
+            const res = await fetch(`${appData.settings.apiHost}/chat/completions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${appData.settings.apiKey}` },
+                body: JSON.stringify({ model: getSelectedModel(), messages: [{role: "user", content: prompt}], temperature: 0.5 })
+            });
+            const data = await res.json();
+            if(data.choices) {
+                const ed = document.getElementById('memoryEditor');
+                ed.value = (ed.value ? ed.value + "\n\n" : "") + data.choices[0].message.content;
+            }
+        } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = oldHtml; }
+    }
+
+    /* --- Msg Actions --- */
+    function regenerateUserMsg(index) {
+        if(!confirm("重生成? (后续消息将被清除)")) return;
+        const session = appData.chats[activeCharId].sessions[activeSessionId];
+        session.messages = session.messages.slice(0, index + 1);
+        saveData(); renderChatUI(); triggerAIResponse(session);
+    }
+    function regenerateAIMsg(index) {
+        const session = appData.chats[activeCharId].sessions[activeSessionId];
+        if(index === session.messages.length - 1) {
+            session.messages.pop(); saveData(); renderChatUI(); triggerAIResponse(session);
+        }
+    }
+    function deleteMsg(index) {
+        if(confirm("删除?")) { appData.chats[activeCharId].sessions[activeSessionId].messages.splice(index, 1); saveData(); renderChatUI(); }
+    }
+    function startEditMsg(index) {
+        const s = appData.chats[activeCharId].sessions[activeSessionId];
+        const n = prompt("编辑:", s.messages[index].content);
+        if(n !== null) { s.messages[index].content = n; saveData(); renderChatUI(); }
+    }
 
     /* --- UI Render --- */
     function renderChatUI() {
         const c = document.getElementById('chatContainer'); c.innerHTML = '';
         if(!activeSessionId) return;
         const session = appData.chats[activeCharId].sessions[activeSessionId];
-        session.messages.forEach(m => appendMsgUI(m, m.role === 'user'));
+        
+        const memBtn = document.getElementById('memoryToggleBtn');
+        memBtn.style.display = 'flex';
+        memBtn.innerHTML = `<i class="fas fa-brain"></i>`;
+        memBtn.style.color = session.summary ? 'var(--success)' : '#888';
+
+        // 渲染时查找最后一条 AI 消息以更新 Context 显示
+        const lastAI = [...session.messages].reverse().find(m => m.role === 'assistant' && m.meta?.tokens);
+        updateContextDisplay(lastAI ? lastAI.meta.tokens.prompt_tokens : 'N/A');
+
+        session.messages.forEach((m, idx) => appendMsgUI(m, m.role === 'user', idx));
         scrollToBottom();
     }
-    function appendMsgUI(msg, isUser, tempId=null) {
+
+    function appendMsgUI(msg, isUser, index, tempId=null) {
         const char = appData.chars.find(c => c.id === activeCharId);
         const user = getCurrentUser();
         const name = isUser ? (msg.meta?.userName || user.name) : char.name;
         const avatar = isUser ? (msg.meta?.userAvatar || user.avatar) : char.avatar;
+        
         const div = document.createElement('div');
         div.className = `msg-row ${isUser ? 'user' : 'char'}`;
         if(tempId) div.id = `msg-${tempId}`;
-        div.innerHTML = `<img class="msg-avatar" src="${avatar}" onerror="this.src='${isUser?DEF_USER_AVATAR:DEF_AVATAR}'"><div class="msg-body"><div class="msg-name">${name}</div><div class="msg-bubble markdown-body">${marked.parse(msg.content)}</div></div>`;
+
+        let btns = '';
+        if(!tempId) {
+            btns += `<button class="action-btn" onclick="startEditMsg(${index})"><i class="fas fa-pen"></i></button>`;
+            btns += `<button class="action-btn" onclick="deleteMsg(${index})"><i class="fas fa-trash"></i></button>`;
+            if(isUser) btns += `<button class="action-btn magic" onclick="regenerateUserMsg(${index})"><i class="fas fa-magic"></i></button>`;
+            else if(index === appData.chats[activeCharId].sessions[activeSessionId].messages.length - 1) btns += `<button class="action-btn" onclick="regenerateAIMsg(${index})"><i class="fas fa-sync"></i></button>`;
+        }
+
+        let metaHtml = '';
+        if(!isUser && msg.meta && !tempId) {
+            const dur = msg.meta.duration ? (msg.meta.duration/1000).toFixed(1)+'s' : '';
+            const total = msg.meta.tokens?.total_tokens || 'N/A';
+            const turn = msg.meta.turn ? `R:${msg.meta.turn}` : '';
+            if(dur || total!=='N/A') metaHtml = `<div class="msg-meta"><span class="meta-tag"><i class="fas fa-clock"></i> ${dur}</span><span class="meta-tag"><i class="fas fa-coins"></i> ${total}</span><span class="meta-tag">${turn}</span></div>`;
+        }
+
+        div.innerHTML = `<img class="msg-avatar" src="${avatar}" onerror="this.src='${isUser?DEF_USER_AVATAR:DEF_AVATAR}'"><div class="msg-body"><div class="msg-name">${name}</div><div class="msg-bubble markdown-body">${marked.parse(msg.content)}</div>${metaHtml}<div class="msg-actions">${btns}</div></div>`;
         document.getElementById('chatContainer').appendChild(div);
     }
-    function updateMsgUI(id, content, meta=null) {
+    function updateMsgBubble(id, content, isError=false) {
         const div = document.getElementById(`msg-${id}`);
-        if(div) { div.querySelector('.msg-bubble').innerHTML = marked.parse(content); scrollToBottom(); }
-    }
-    function renderSessionSelect() {
-        const sel = document.getElementById('sessionSelect'); sel.innerHTML = '';
-        Object.values(getCharData(activeCharId).sessions).sort((a,b) => b.id - a.id).forEach(s => {
-            const opt = document.createElement('option');
-            opt.value = s.id; opt.text = s.name; opt.selected = s.id === activeSessionId;
-            sel.appendChild(opt);
-        });
+        if(div) { const b = div.querySelector('.msg-bubble'); b.innerHTML = isError ? content : marked.parse(content); if(isError) div.classList.add('error'); scrollToBottom(); }
     }
 
-    /* --- 辅助 --- */
-    function fillSettingsUI() {
-        const s = appData.settings;
-        document.getElementById('apiHost').value = s.apiHost;
-        document.getElementById('apiKey').value = s.apiKey;
-        document.getElementById('temperature').value = s.temp;
-        document.getElementById('bgUrl').value = s.bgUrl;
-        const sel = document.getElementById('modelSelect');
-        if(![...sel.options].some(o=>o.value===s.model)) {
-             sel.value = 'custom'; document.getElementById('customModelInput').style.display='block'; document.getElementById('customModelInput').value=s.model;
-        } else sel.value = s.model;
+    /* --- Helpers --- */
+    function getCharData(cid) { if (!appData.chats[cid]) appData.chats[cid] = { sessions: {}, currentSessionId: null }; return appData.chats[cid]; }
+    function loadChar(id) {
+        activeCharId = id; const cData = getCharData(id); 
+        if(window.innerWidth <= 768) toggleSidebar();
+        if(Object.keys(cData.sessions).length === 0) createNewSession(id, false);
+        if(!cData.currentSessionId) cData.currentSessionId = Object.keys(cData.sessions)[0];
+        switchSession(cData.currentSessionId); renderCharList();
     }
-    function saveSettings() {
-        const s = appData.settings;
-        s.apiHost = document.getElementById('apiHost').value;
-        s.apiKey = document.getElementById('apiKey').value;
-        s.temp = document.getElementById('temperature').value;
-        s.bgUrl = document.getElementById('bgUrl').value;
-        s.model = getSelectedModel();
-        saveData(); updateBg();
+    function switchSession(sid) { activeSessionId = sid; getCharData(activeCharId).currentSessionId = sid; saveData(); renderSessionSelect(); renderChatUI(); }
+    function createNewSession(charId=activeCharId, switchNow=true) {
+        if(!charId) return;
+        const newId = Date.now().toString();
+        const char = appData.chars.find(c=>c.id===charId);
+        const initMsgs = char.firstMsg ? [{role:'assistant', content:char.firstMsg, meta:{time:Date.now()}}] : [];
+        getCharData(charId).sessions[newId] = { id:newId, name: "New Chat", summary:"", messages: initMsgs };
+        if(switchNow) switchSession(newId);
     }
-    function updateBg() { document.body.style.backgroundImage = appData.settings.bgUrl ? `url('${appData.settings.bgUrl}')` : 'var(--bg-gradient)'; }
-    function getSelectedModel() { const v = document.getElementById('modelSelect').value; return v==='custom'?document.getElementById('customModelInput').value:v; }
-    function handleModelChange() { document.getElementById('customModelInput').style.display = document.getElementById('modelSelect').value==='custom'?'block':'none'; saveSettings(); }
+    function deleteCurrentSession() {
+        if(confirm("删除?")) { delete getCharData(activeCharId).sessions[activeSessionId]; const k=Object.keys(getCharData(activeCharId).sessions); k.length>0?switchSession(k[0]):createNewSession(); saveData(); }
+    }
+    function renameCurrentSession() { const s = appData.chats[activeCharId].sessions[activeSessionId]; const n = prompt("重命名:", s.name); if(n) { s.name=n; saveData(); renderSessionSelect(); } }
     
-    async function fetchModels() {
-        const host = document.getElementById('apiHost').value.replace(/\/v1\/?$/, '');
-        try {
-            const res = await fetch(`${host}/v1/models`, {headers:{Authorization:`Bearer ${document.getElementById('apiKey').value}`}});
-            const data = await res.json();
-            const sel = document.getElementById('modelSelect'); sel.innerHTML = '';
-            data.data.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.text = m.id; sel.appendChild(opt); });
-            sel.add(new Option('-- 自定义 --', 'custom'));
-            alert("模型列表已更新");
-        } catch(e) { alert("获取失败"); }
+    function renderUserList() {
+        const list = document.getElementById('userPersonaList'); list.innerHTML = '';
+        appData.user_personas.forEach(p => {
+            const div = document.createElement('div'); div.className = `list-item ${p.id===appData.active_user_id?'active':''}`;
+            div.onclick = ()=>switchUserPersona(p.id);
+            div.innerHTML = `<img src="${p.avatar||DEF_USER_AVATAR}" class="avatar-sm"><div style="flex:1;font-weight:bold;">${p.name}</div>`;
+            list.appendChild(div);
+        });
+        const c = getCurrentUser();
+        if(c.id) {
+            document.getElementById('userEditArea').style.display='block';
+            document.getElementById('userName').value=c.name; document.getElementById('userAvatar').value=c.avatar; document.getElementById('userDesc').value=c.desc;
+        }
     }
+    function createNewUserPersona(render=true) { appData.user_personas.push({id:Date.now().toString(), name:"User", avatar:"", desc:""}); appData.active_user_id=appData.user_personas[appData.user_personas.length-1].id; saveData(); if(render) renderUserList(); }
+    function switchUserPersona(id) { appData.active_user_id=id; saveData(); renderUserList(); renderChatUI(); }
+    function saveCurrentUser() { const c=appData.user_personas.find(p=>p.id===appData.active_user_id); c.name=document.getElementById('userName').value; c.avatar=document.getElementById('userAvatar').value; c.desc=document.getElementById('userDesc').value; saveData(); renderUserList(); }
+    function deleteUserPersona() { if(appData.user_personas.length>1 && confirm("删除?")) { appData.user_personas=appData.user_personas.filter(p=>p.id!==appData.active_user_id); appData.active_user_id=appData.user_personas[0].id; saveData(); renderUserList(); } }
+    function getCurrentUser() { return appData.user_personas.find(p=>p.id===appData.active_user_id)||{}; }
 
     function renderCharList() {
         const list = document.getElementById('charList'); list.innerHTML = '';
         appData.chars.forEach(c => {
-            const div = document.createElement('div');
-            div.className = `list-item ${c.id === activeCharId ? 'active' : ''}`;
-            div.innerHTML = `<img src="${c.avatar || DEF_AVATAR}" class="avatar-sm"><div style="flex:1; font-weight:500;">${c.name}</div><button class="btn-ghost" onclick="event.stopPropagation(); editChar('${c.id}')"><i class="fas fa-cog"></i></button>`;
-            div.onclick = () => loadChar(c.id);
-            list.appendChild(div);
+            const div = document.createElement('div'); div.className = `list-item ${c.id===activeCharId?'active':''}`;
+            div.innerHTML = `<img src="${c.avatar||DEF_AVATAR}" class="avatar-sm"><div style="flex:1;">${c.name}</div><button class="btn-ghost" onclick="event.stopPropagation();editChar('${c.id}')"><i class="fas fa-cog"></i></button>`;
+            div.onclick = ()=>loadChar(c.id); list.appendChild(div);
         });
     }
-    function openCharEditor() { document.getElementById('charModal').classList.add('active'); document.getElementById('editId').value=''; document.getElementById('editName').value=''; }
+    function openCharEditor() { document.getElementById('charModal').classList.add('active'); ['editId','editName','editAvatar','editDesc','editStory','editFirst'].forEach(i=>document.getElementById(i).value=''); }
     function editChar(id) {
-        const c = appData.chars.find(ch => ch.id === id);
-        document.getElementById('charModal').classList.add('active');
-        document.getElementById('editId').value = c.id; document.getElementById('editName').value = c.name;
-        document.getElementById('editAvatar').value = c.avatar; document.getElementById('editDesc').value = c.desc;
-        document.getElementById('editWorld').value = c.world || ''; document.getElementById('editFirst').value = c.firstMsg || '';
+        const c = appData.chars.find(ch=>ch.id===id); document.getElementById('charModal').classList.add('active');
+        document.getElementById('editId').value=c.id; document.getElementById('editName').value=c.name; document.getElementById('editAvatar').value=c.avatar;
+        document.getElementById('editDesc').value=c.desc; document.getElementById('editStory').value=c.story||''; document.getElementById('editFirst').value=c.firstMsg||'';
     }
     function saveChar() {
-        const id = document.getElementById('editId').value || Date.now().toString();
-        const newC = { id, name: document.getElementById('editName').value, avatar: document.getElementById('editAvatar').value, desc: document.getElementById('editDesc').value, world: document.getElementById('editWorld').value, firstMsg: document.getElementById('editFirst').value };
-        const idx = appData.chars.findIndex(c => c.id === id);
-        if(idx > -1) appData.chars[idx] = newC; else appData.chars.push(newC);
+        const id=document.getElementById('editId').value||Date.now().toString();
+        const n={id, name:document.getElementById('editName').value, avatar:document.getElementById('editAvatar').value, desc:document.getElementById('editDesc').value, story:document.getElementById('editStory').value, firstMsg:document.getElementById('editFirst').value};
+        const idx=appData.chars.findIndex(c=>c.id===id); if(idx>-1) appData.chars[idx]=n; else appData.chars.push(n);
         saveData(); renderCharList(); closeModal(); if(activeCharId===id) loadChar(id);
     }
-    function deleteChar() {
-        const id = document.getElementById('editId').value;
-        if(confirm("确定删除？")) {
-            appData.chars = appData.chars.filter(c => c.id !== id); delete appData.chats[id];
-            saveData(); renderCharList(); closeModal();
-            if(activeCharId === id) { activeCharId=null; document.getElementById('topControls').style.display='none'; document.getElementById('chatContainer').innerHTML=''; }
-        }
+    function deleteChar() { const id=document.getElementById('editId').value; if(confirm("删除?")) { appData.chars=appData.chars.filter(c=>c.id!==id); delete appData.chats[id]; saveData(); renderCharList(); closeModal(); if(activeCharId===id) { activeCharId=null; document.getElementById('chatContainer').innerHTML=''; } } }
+
+    function fillSettingsUI() {
+        const s = appData.settings; 
+        document.getElementById('apiHost').value=s.apiHost; document.getElementById('apiKey').value=s.apiKey; 
+        document.getElementById('ctxLimit').value=s.ctxLimit; document.getElementById('bgUrl').value=s.bgUrl;
+        document.getElementById('temperature').value=s.temp; document.getElementById('tempVal').innerText=s.temp;
+        document.getElementById('streamToggle').checked = s.stream;
+        const sel=document.getElementById('modelSelect'); if(![...sel.options].some(o=>o.value===s.model)) { sel.value='custom'; document.getElementById('customModelInput').style.display='block'; document.getElementById('customModelInput').value=s.model; } else sel.value=s.model;
     }
+    function saveSettings() {
+        const s = appData.settings; 
+        s.apiHost=document.getElementById('apiHost').value.replace(/\/$/,""); s.apiKey=document.getElementById('apiKey').value; 
+        s.bgUrl=document.getElementById('bgUrl').value; s.ctxLimit=document.getElementById('ctxLimit').value; s.model=getSelectedModel();
+        s.temp=document.getElementById('temperature').value; s.stream=document.getElementById('streamToggle').checked;
+        saveData(); updateBg();
+    }
+    function updateBg() { document.body.style.backgroundImage = appData.settings.bgUrl ? `url('${appData.settings.bgUrl}')` : 'var(--bg-gradient)'; }
+    function getSelectedModel() { const v=document.getElementById('modelSelect').value; return v==='custom'?document.getElementById('customModelInput').value:v; }
+    function handleModelChange() { document.getElementById('customModelInput').style.display = document.getElementById('modelSelect').value==='custom'?'block':'none'; saveSettings(); }
+    async function fetchModels() { try { const res=await fetch(`${document.getElementById('apiHost').value.replace(/\/v1\/?$/,'')}/v1/models`,{headers:{Authorization:`Bearer ${document.getElementById('apiKey').value}`}}); const d=await res.json(); const sel=document.getElementById('modelSelect'); sel.innerHTML=''; d.data.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.text=m.id;sel.appendChild(o)}); sel.add(new Option('-- 自定义 --','custom')); alert("已更新"); } catch(e){alert("失败");} }
+
     function closeModal() { document.getElementById('charModal').classList.remove('active'); }
     function saveData() { localStorage.setItem(DB_KEY, JSON.stringify(appData)); }
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobileOverlay').classList.toggle('active'); }
-    function switchTab(t) {
-        document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-        document.getElementById('tab-'+t).classList.add('active');
-        const navs = document.querySelectorAll('.nav-item');
-        if(t==='chars') navs[0].classList.add('active'); if(t==='user') navs[1].classList.add('active'); if(t==='settings') navs[2].classList.add('active');
-    }
-    function handleEnter(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } e.target.style.height = 'auto'; e.target.style.height = (e.target.scrollHeight) + 'px'; }
-    function scrollToBottom() { const c = document.getElementById('chatContainer'); c.scrollTop = c.scrollHeight; }
-    function nukeData() { if(confirm("清空重置？")) { localStorage.removeItem(DB_KEY); location.reload(); } }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+    function switchTab(t) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); const m={'chars':0,'user':1,'settings':2}; document.querySelectorAll('.nav-item')[m[t]].classList.add('active'); }
+    function handleEnter(e) { if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(); } e.target.style.height = (e.target.scrollHeight)+'px'; }
+    function scrollToBottom() { const c=document.getElementById('chatContainer'); c.scrollTop=c.scrollHeight; }
+    function renderSessionSelect() { const s=document.getElementById('sessionSelect'); s.innerHTML=''; Object.values(getCharData(activeCharId).sessions).sort((a,b)=>b.id-a.id).forEach(ss=>{ const o=document.createElement('option'); o.value=ss.id; o.text=ss.name; o.selected=ss.id===activeSessionId; s.appendChild(o); }); }
+    function stopGen() { if(abortCtrl) abortCtrl.abort(); }
+    function nukeData() { if(confirm("清空?")) { localStorage.removeItem(DB_KEY); location.reload(); } }
 </script>
 </body>
 </html>
