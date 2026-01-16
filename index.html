@@ -1,94 +1,318 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OmniTavern v3 - 多重身份版</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>OmniTavern v4.1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <style>
+        /* --- 核心变量与重置 --- */
         :root {
-            --bg-glass: rgba(20, 20, 25, 0.95);
-            --bg-glass-light: rgba(255, 255, 255, 0.08);
+            --bg-base: #0f1117;
+            --bg-gradient: radial-gradient(circle at top left, #1a1b26, #0f1117);
+            --glass-panel: rgba(30, 32, 40, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
             --primary: #7aa2f7;
+            --primary-hover: #5d87e5;
             --danger: #f7768e;
-            --text: #c0caf5;
-            --border: rgba(255, 255, 255, 0.15);
-            --bubble-user: #2d3f50;
-            --bubble-char: #1f2335;
+            --text-main: #c0caf5;
+            --text-muted: #787c99;
+            
+            --bubble-me: #3d59a1;
+            --bubble-ai: #24283b;
+            
+            --radius-md: 12px;
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1b26; color: var(--text); height: 100vh; overflow: hidden; background-size: cover; background-position: center; transition: background 0.3s; }
+        
+        body { 
+            margin: 0; 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background: var(--bg-base); 
+            background-image: var(--bg-gradient);
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden; 
+            background-size: cover; 
+            background-position: center; 
+            transition: background-image 0.5s ease;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
 
         #app { display: flex; height: 100%; width: 100%; position: relative; }
-        
-        /* 侧边栏 */
-        .sidebar { width: 300px; background: var(--bg-glass); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; transition: transform 0.3s; }
-        .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        
-        .nav-tabs { display: flex; background: rgba(0,0,0,0.3); }
-        .nav-item { flex: 1; padding: 12px; text-align: center; cursor: pointer; border-bottom: 2px solid transparent; color: #888; }
-        .nav-item.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--bg-glass-light); }
-        .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; }
+
+        /* --- 侧边栏 --- */
+        .sidebar { 
+            width: 320px; 
+            background: var(--glass-panel); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border); 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 100; 
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-header { 
+            padding: 20px; 
+            border-bottom: 1px solid var(--glass-border); 
+            font-weight: 700; 
+            font-size: 1.1rem;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            color: white;
+            background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
+        }
+
+        /* 导航 Tab */
+        .nav-tabs { 
+            display: flex; 
+            background: rgba(0,0,0,0.2); 
+            padding: 5px;
+            margin: 10px;
+            border-radius: var(--radius-md);
+        }
+        .nav-item { 
+            flex: 1; 
+            padding: 8px; 
+            text-align: center; 
+            cursor: pointer; 
+            color: var(--text-muted); 
+            font-size: 0.85rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .nav-item:hover { color: var(--text-main); }
+        .nav-item.active { 
+            color: white; 
+            background: var(--primary); 
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(122, 162, 247, 0.3);
+        }
+
+        .tab-content { flex: 1; overflow-y: auto; padding: 15px; display: none; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
 
-        /* 控件 */
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-size: 0.75rem; color: #aaa; margin-bottom: 5px; }
-        .form-control { width: 100%; padding: 10px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 16px; }
-        
-        select.form-control { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1em; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 5px; font-size: 0.9rem; }
-        .btn-primary { background: var(--primary); }
-        .btn-danger { background: var(--danger); }
-        .btn-ghost { background: transparent; color: #aaa; width: auto; padding: 5px; }
+        /* --- 控件 --- */
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
         
-        .list-item { display: flex; padding: 10px; margin-bottom: 8px; background: var(--bg-glass-light); border-radius: 8px; cursor: pointer; border: 1px solid transparent; align-items: center; gap: 10px; position: relative; }
-        .list-item.active { border-color: var(--primary); background: rgba(122, 162, 247, 0.15); }
-        .avatar-sm { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #333; flex-shrink: 0; }
-        
-        /* 玩家身份标签 */
-        .persona-tag { font-size: 0.7rem; background: var(--primary); color: #000; padding: 2px 6px; border-radius: 4px; position: absolute; top: 5px; right: 5px; display: none; }
+        .form-control { 
+            width: 100%; 
+            padding: 10px 12px; 
+            background: rgba(0,0,0,0.3); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 8px; 
+            color: white; 
+            font-size: 14px; 
+            transition: border-color 0.2s, background 0.2s;
+            font-family: inherit;
+        }
+        .form-control:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); }
+
+        /* 按钮 */
+        .btn { 
+            width: 100%; 
+            padding: 10px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            color: white; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 0.9rem; 
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary); box-shadow: 0 4px 15px rgba(122, 162, 247, 0.2); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: rgba(247, 118, 142, 0.2); color: var(--danger); border: 1px solid rgba(247, 118, 142, 0.3); }
+        .btn-ghost { background: transparent; color: var(--text-muted); width: auto; padding: 6px; border-radius: 6px; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: white; }
+
+        /* 列表项 */
+        .list-item { 
+            display: flex; 
+            padding: 12px; 
+            margin-bottom: 8px; 
+            background: rgba(255,255,255,0.03); 
+            border-radius: 10px; 
+            cursor: pointer; 
+            border: 1px solid transparent; 
+            align-items: center; 
+            gap: 12px; 
+            position: relative; 
+            transition: all 0.2s;
+        }
+        .list-item:hover { background: rgba(255,255,255,0.06); }
+        .list-item.active { 
+            border-color: var(--primary); 
+            background: rgba(122, 162, 247, 0.1); 
+            box-shadow: inset 0 0 20px rgba(122, 162, 247, 0.05);
+        }
+        .avatar-sm { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; background: #222; flex-shrink: 0; }
+        .persona-tag { font-size: 0.65rem; background: var(--primary); color: #fff; padding: 2px 6px; border-radius: 4px; position: absolute; top: 8px; right: 8px; display: none; font-weight: bold; }
         .list-item.active .persona-tag { display: block; }
 
-        /* 主界面 */
-        .main-stage { flex: 1; display: flex; flex-direction: column; position: relative; background: rgba(0,0,0,0.2); }
-        .top-bar { height: 50px; padding: 0 10px; background: var(--bg-glass); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        
-        .timeline-controls { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
-        #sessionSelect { flex: 1; max-width: 160px; height: 32px; padding: 0 5px; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.3); color: white; }
+        /* --- 主界面 --- */
+        .main-stage { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            background: rgba(0,0,0,0.2); 
+            backdrop-filter: blur(5px);
+        }
+
+        .top-bar { 
+            height: 60px; 
+            padding: 0 15px; 
+            background: var(--glass-panel); 
+            border-bottom: 1px solid var(--glass-border); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            gap: 10px;
+            z-index: 10;
+        }
 
         /* 聊天区 */
-        .chat-container { flex: 1; padding: 15px; overflow-y: auto; scroll-behavior: smooth; }
-        .msg-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .chat-container { 
+            flex: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            scroll-behavior: smooth; 
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .msg-row { display: flex; gap: 12px; margin-bottom: 24px; animation: slideIn 0.3s ease; }
         .msg-row.user { flex-direction: row-reverse; }
-        .msg-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .msg-avatar { 
+            width: 48px; height: 48px; 
+            border-radius: 14px; 
+            object-fit: cover; 
+            border: 2px solid rgba(255,255,255,0.1); 
+            flex-shrink: 0; 
+            background: #000;
+        }
         
-        .msg-body { max-width: 85%; display: flex; flex-direction: column; }
+        .msg-body { max-width: 80%; display: flex; flex-direction: column; }
         .msg-row.user .msg-body { align-items: flex-end; }
-        .msg-bubble { padding: 10px 14px; border-radius: 12px; line-height: 1.5; word-wrap: break-word; font-size: 0.95rem; }
-        .msg-row.user .msg-bubble { background: var(--bubble-user); color: white; border-top-right-radius: 2px; }
-        .msg-row.char .msg-bubble { background: var(--bubble-char); color: #ddd; border-top-left-radius: 2px; }
-        .msg-bubble p { margin: 5px 0; }
         
-        .msg-meta { font-size: 0.65rem; color: #666; margin-top: 4px; display: flex; gap: 8px; }
+        .msg-name { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; padding: 0 4px; }
+        
+        .msg-bubble { 
+            padding: 12px 18px; 
+            border-radius: 18px; 
+            line-height: 1.6; 
+            word-wrap: break-word; 
+            font-size: 0.95rem; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .msg-row.user .msg-bubble { 
+            background: linear-gradient(135deg, var(--bubble-me), #2d4278);
+            color: white; 
+            border-top-right-radius: 4px; 
+        }
+        .msg-row.char .msg-bubble { 
+            background: var(--bubble-ai); 
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #dbe0eb; 
+            border-top-left-radius: 4px; 
+        }
+        
+        .msg-bubble p { margin: 0 0 8px 0; }
+        .msg-bubble p:last-child { margin-bottom: 0; }
 
-        /* 底部输入 */
-        .input-area { padding: 10px; background: var(--bg-glass); border-top: 1px solid var(--border); }
-        .input-wrapper { display: flex; gap: 8px; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 8px; border: 1px solid var(--border); }
-        textarea#userInput { flex: 1; background: transparent; border: none; color: white; resize: none; height: 40px; max-height: 120px; font-size: 16px; }
-        .send-btn { width: 40px; height: 40px; border-radius: 6px; background: var(--primary); border: none; color: white; font-size: 1.1rem; }
+        /* 输入区 */
+        .input-area { 
+            padding: 20px; 
+            background: linear-gradient(to top, rgba(15,17,23,0.95), transparent);
+        }
+        .input-wrapper { 
+            display: flex; 
+            gap: 10px; 
+            background: rgba(30, 32, 40, 0.9); 
+            backdrop-filter: blur(10px);
+            border-radius: 24px; 
+            padding: 8px 8px 8px 16px; 
+            border: 1px solid rgba(255,255,255,0.15); 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            align-items: flex-end;
+        }
 
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 90; display: none; }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .modal-content { background: #1f2335; width: 90%; max-width: 400px; max-height: 90vh; border-radius: 12px; padding: 20px; overflow-y: auto; border: 1px solid var(--border); }
+        textarea#userInput { 
+            flex: 1; 
+            background: transparent; 
+            border: none; 
+            color: white; 
+            resize: none; 
+            height: 44px; 
+            max-height: 150px; 
+            font-size: 16px; 
+            font-family: inherit;
+            padding: 10px 0;
+        }
+
+        .send-btn { 
+            width: 44px; height: 44px; 
+            border-radius: 50%; 
+            background: var(--primary); 
+            border: none; 
+            color: white; 
+            font-size: 1.1rem; 
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .send-btn:hover { transform: scale(1.05); background: var(--primary-hover); }
+
+        /* 模态框 */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 90; display: none; opacity: 0; transition: opacity 0.3s; }
+        .overlay.active { display: block; opacity: 1; }
+        
+        .modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; pointer-events: none; }
+        .modal.active { display: flex; pointer-events: auto; }
+        
+        .modal-content { 
+            background: #1a1b26; 
+            width: 90%; max-width: 450px; max-height: 90vh; 
+            border-radius: 16px; padding: 24px; 
+            overflow-y: auto; 
+            border: 1px solid var(--glass-border); 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         @media (max-width: 768px) {
-            .sidebar { position: fixed; height: 100%; transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .overlay.active { display: block; }
+            .sidebar { position: fixed; height: 100%; transform: translateX(-110%); box-shadow: none; }
+            .sidebar.open { transform: translateX(0); box-shadow: 5px 0 30px rgba(0,0,0,0.5); }
         }
     </style>
 </head>
@@ -99,37 +323,38 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <span>OmniTavern v3</span>
-            <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+            <span style="display:flex; align-items:center; gap:10px;">
+                <i class="fas fa-dice-d20" style="color:var(--primary)"></i> OmniTavern
+            </span>
+            <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-chevron-left"></i></button>
         </div>
 
         <div class="nav-tabs">
-            <div class="nav-item active" onclick="switchTab('chars')">角色</div>
-            <div class="nav-item" onclick="switchTab('user')">玩家(身份)</div>
-            <div class="nav-item" onclick="switchTab('settings')">设置</div>
+            <div class="nav-item active" onclick="switchTab('chars')"><i class="fas fa-users"></i> 角色</div>
+            <div class="nav-item" onclick="switchTab('user')"><i class="fas fa-user-tag"></i> 身份</div>
+            <div class="nav-item" onclick="switchTab('settings')"><i class="fas fa-cog"></i> 设置</div>
         </div>
 
         <div id="tab-chars" class="tab-content active">
-            <button class="btn btn-primary" onclick="openCharEditor()"><i class="fas fa-plus"></i> 新建角色</button>
-            <div id="charList" style="margin-top: 15px;"></div>
+            <button class="btn btn-primary" onclick="openCharEditor()" style="margin-bottom:15px;"><i class="fas fa-plus"></i> 创建新角色</button>
+            <div id="charList"></div>
         </div>
 
         <div id="tab-user" class="tab-content">
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:15px; font-size:0.8rem; color:#aaa;">
+                <i class="fas fa-info-circle"></i> 你可以创建多个身份 (Persona)。
+            </div>
             <button class="btn btn-primary" onclick="createNewUserPersona()"><i class="fas fa-user-plus"></i> 新建身份</button>
-            <div style="font-size:0.75rem; color:#888; margin: 10px 0;">点击下方列表切换当前使用的身份：</div>
+            <div id="userPersonaList" style="max-height: 200px; overflow-y: auto; margin: 15px 0;"></div>
             
-            <div id="userPersonaList" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;"></div>
-            
-            <hr style="border-color: #333; margin-bottom: 15px;">
-            
-            <div id="userEditArea" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <span style="font-size:0.8rem; font-weight:bold; color:var(--primary);">正在编辑当前身份</span>
-                    <i class="fas fa-trash-alt" style="color:var(--danger); cursor:pointer;" onclick="deleteUserPersona()"></i>
+            <div id="userEditArea" style="display:none; border-top:1px solid var(--glass-border); padding-top:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-size:0.9rem; font-weight:bold; color:var(--primary);">编辑身份</span>
+                    <button class="btn-ghost" style="color:var(--danger);" onclick="deleteUserPersona()"><i class="fas fa-trash-alt"></i></button>
                 </div>
-                <div class="form-group"><label class="form-label">身份名称</label><input type="text" id="userName" class="form-control" onchange="saveCurrentUser()"></div>
-                <div class="form-group"><label class="form-label">头像 URL</label><input type="text" id="userAvatar" class="form-control" onchange="saveCurrentUser()"></div>
-                <div class="form-group"><label class="form-label">人设描述 (Persona)</label><textarea id="userDesc" class="form-control" style="height: 100px;" placeholder="我是谁，我的性格，我与对方的关系..." onchange="saveCurrentUser()"></textarea></div>
+                <div class="form-group"><label class="form-label">昵称</label><input type="text" id="userName" class="form-control" onchange="saveCurrentUser()"></div>
+                <div class="form-group"><label class="form-label">头像</label><input type="text" id="userAvatar" class="form-control" onchange="saveCurrentUser()"></div>
+                <div class="form-group"><label class="form-label">人设描述</label><textarea id="userDesc" class="form-control" style="height: 100px;" onchange="saveCurrentUser()"></textarea></div>
             </div>
         </div>
 
@@ -138,8 +363,8 @@
             <div class="form-group"><label class="form-label">API Key</label><input type="password" id="apiKey" class="form-control"></div>
             
             <div class="form-group">
-                <label class="form-label">模型 (Model)</label>
-                <div style="display:flex; gap:5px;">
+                <label class="form-label">模型</label>
+                <div style="display:flex; gap:8px;">
                     <select id="modelSelect" class="form-control" onchange="handleModelChange()">
                         <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                         <option value="gpt-4o">gpt-4o</option>
@@ -148,49 +373,56 @@
                     </select>
                     <button class="btn btn-primary" style="width:50px;" onclick="fetchModels()"><i class="fas fa-sync"></i></button>
                 </div>
-                <input type="text" id="customModelInput" class="form-control" style="display:none; margin-top:5px;" placeholder="输入模型名称..." onchange="saveSettings()">
+                <input type="text" id="customModelInput" class="form-control" style="display:none; margin-top:8px;" onchange="saveSettings()">
             </div>
 
             <div class="form-group">
-                <label class="form-label">温度: <span id="tempDisplay">0.8</span></label>
-                <input type="range" id="temperature" class="form-control" min="0" max="2" step="0.1" value="0.8" style="padding:0;" oninput="document.getElementById('tempDisplay').innerText=this.value; saveSettings()">
-            </div>
-
-            <div class="form-group" style="display:flex; justify-content:space-between; align-items:center;">
-                <label class="form-label">流式输出</label>
-                <input type="checkbox" id="streamToggle" checked onchange="saveSettings()" style="width:20px; height:20px;">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">背景 URL</label>
-                <input type="text" id="bgUrl" class="form-control" onchange="updateBg()">
+                <label class="form-label">温度 (Temperature)</label>
+                <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.8" style="width:100%;" onchange="saveSettings()">
             </div>
             
-            <button class="btn btn-danger" onclick="nukeData()" style="margin-top:20px;">清空所有数据</button>
+            <div class="form-group">
+                <label class="form-label">背景图片 URL</label>
+                <input type="text" id="bgUrl" class="form-control" onchange="saveSettings()">
+            </div>
+            
+            <button class="btn btn-danger" onclick="nukeData()" style="margin-top:30px;">清空所有数据</button>
         </div>
     </aside>
 
     <main class="main-stage">
         <div class="top-bar">
             <button class="btn-ghost" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <div class="timeline-controls" id="topControls" style="display:none;">
-                <select id="sessionSelect" onchange="switchSession(this.value)"></select>
-                <button class="btn-ghost" onclick="createNewSession()" title="新剧情"><i class="fas fa-plus"></i></button>
-                <button class="btn-ghost" onclick="forkSession()" title="分支"><i class="fas fa-code-branch"></i></button>
-                <button class="btn-ghost" style="color:#f7768e;" onclick="deleteCurrentSession()" title="删除剧情"><i class="fas fa-trash-alt"></i></button>
+            
+            <div class="timeline-controls" id="topControls" style="display:none; flex:1; align-items:center; gap:8px; overflow:hidden;">
+                <div style="flex:1; display:flex; align-items:center; gap:5px; max-width:300px;">
+                    <select id="sessionSelect" onchange="switchSession(this.value)" class="form-control" style="padding:5px 10px; height:36px; text-overflow:ellipsis;"></select>
+                    <button class="btn-ghost" onclick="renameCurrentSession()" title="重命名当前对话标题"><i class="fas fa-pen"></i></button>
+                </div>
+                
+                <div style="display:flex; gap:5px; margin-left:auto;">
+                    <button class="btn-ghost" onclick="createNewSession()" title="新剧情"><i class="fas fa-plus"></i></button>
+                    <button class="btn-ghost" onclick="forkSession()" title="分支"><i class="fas fa-code-branch"></i></button>
+                    <button class="btn-ghost" style="color:var(--danger);" onclick="deleteCurrentSession()" title="删除"><i class="fas fa-trash"></i></button>
+                </div>
             </div>
         </div>
 
         <div class="chat-container" id="chatContainer">
-            <div style="text-align:center; margin-top:50px; color:#666;">请选择或创建角色</div>
+            <div style="text-align:center; margin-top:100px; color:rgba(255,255,255,0.3);">
+                <i class="fas fa-comments" style="font-size:3rem; margin-bottom:15px;"></i>
+                <p>请选择或创建角色</p>
+            </div>
         </div>
 
         <div class="input-area">
             <div class="input-wrapper">
-                <textarea id="userInput" placeholder="输入..." onkeydown="handleEnter(event)"></textarea>
+                <textarea id="userInput" placeholder="发送消息..." onkeydown="handleEnter(event)"></textarea>
                 <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
-            <button id="stopBtn" class="btn btn-danger" style="display:none; margin-top:5px; padding:5px;" onclick="stopGen()">停止生成</button>
+            <div style="text-align:center;">
+                <button id="stopBtn" class="btn btn-danger" style="display:none; width:auto; padding:5px 15px; margin:10px auto 0; font-size:0.8rem;" onclick="stopGen()"><i class="fas fa-stop"></i> 停止生成</button>
+            </div>
         </div>
     </main>
 
@@ -200,84 +432,69 @@
             <input type="hidden" id="editId">
             <div class="form-group"><label class="form-label">名字</label><input type="text" id="editName" class="form-control"></div>
             <div class="form-group"><label class="form-label">头像 URL</label><input type="text" id="editAvatar" class="form-control"></div>
-            <div class="form-group"><label class="form-label">人设 (Description)</label><textarea id="editDesc" class="form-control" style="height:80px;"></textarea></div>
-            <div class="form-group"><label class="form-label">世界观 (World)</label><textarea id="editWorld" class="form-control" style="height:60px;"></textarea></div>
-            <div class="form-group"><label class="form-label">开场白</label><textarea id="editFirst" class="form-control"></textarea></div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
+            <div class="form-group"><label class="form-label">角色设定</label><textarea id="editDesc" class="form-control" style="height:80px;"></textarea></div>
+            <div class="form-group"><label class="form-label">世界观</label><textarea id="editWorld" class="form-control" style="height:60px;"></textarea></div>
+            <div class="form-group"><label class="form-label">开场白</label><textarea id="editFirst" class="form-control" style="height:60px;"></textarea></div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
                 <button class="btn btn-primary" onclick="saveChar()">保存</button>
                 <button class="btn btn-ghost" onclick="closeModal()">取消</button>
-                <button class="btn btn-danger" onclick="deleteChar()">删除角色</button>
+                <button class="btn btn-danger" onclick="deleteChar()">删除</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const DB_KEY = 'omni_ultimate_v3'; // 升级Key避免冲突
+    const DB_KEY = 'omni_v4_data'; 
     const DEF_AVATAR = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
     const DEF_USER_AVATAR = 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png';
     
     let appData = {
-        chars: [], 
-        chats: {}, 
-        // 核心升级: 支持多重身份
-        user_personas: [], // [{id, name, avatar, desc}]
-        active_user_id: null,
-        settings: { apiHost: "https://api.openai.com/v1", apiKey: "", model: "gpt-4o", temp: 0.8, stream: true, bgUrl: "" }
+        chars: [], chats: {}, user_personas: [], active_user_id: null,
+        settings: { apiHost: "https://api.openai.com/v1", apiKey: "", model: "gpt-3.5-turbo", temp: 0.8, bgUrl: "" }
     };
     let activeCharId = null, activeSessionId = null, abortCtrl = null;
 
     window.onload = function() {
-        // 数据迁移逻辑：尝试读取V2数据
-        const v2Data = localStorage.getItem('omni_ultimate_v2');
-        if(!localStorage.getItem(DB_KEY) && v2Data) {
-            const old = JSON.parse(v2Data);
-            appData.chars = old.chars || [];
-            appData.chats = old.chats || {};
-            appData.settings = old.settings || appData.settings;
-            // 迁移旧用户为第一个身份
-            const firstId = Date.now().toString();
-            appData.user_personas = [{id: firstId, name: old.user.name, avatar: old.user.avatar, desc: old.user.desc}];
-            appData.active_user_id = firstId;
-            saveData();
+        const raw = localStorage.getItem(DB_KEY);
+        if(raw) {
+            appData = {...appData, ...JSON.parse(raw)};
         } else {
-            loadData();
+            // 简单迁移尝试
+            const v3 = localStorage.getItem('omni_ultimate_v3');
+            if(v3) appData = {...appData, ...JSON.parse(v3)};
         }
-
-        // 初始化默认身份
-        if(appData.user_personas.length === 0) {
-            createNewUserPersona(false);
-        }
-
-        renderCharList();
-        renderUserList();
-        updateBg();
-        document.querySelectorAll('#tab-settings input').forEach(el => el.addEventListener('change', saveSettings));
+        if(appData.user_personas.length === 0) createNewUserPersona(false);
+        fillSettingsUI(); renderCharList(); renderUserList(); updateBg();
     };
 
-    /* --- 用户身份系统 (Persona System) --- */
+    /* --- 新增功能：重命名对话标题 --- */
+    function renameCurrentSession() {
+        if(!activeCharId || !activeSessionId) return;
+        const session = appData.chats[activeCharId].sessions[activeSessionId];
+        const newName = prompt("请输入新的对话标题:", session.name);
+        if(newName && newName.trim() !== "") {
+            session.name = newName.trim();
+            saveData();
+            renderSessionSelect();
+        }
+    }
+
+    /* --- 身份系统 --- */
     function renderUserList() {
-        const list = document.getElementById('userPersonaList');
-        list.innerHTML = '';
+        const list = document.getElementById('userPersonaList'); list.innerHTML = '';
         appData.user_personas.forEach(p => {
             const div = document.createElement('div');
             div.className = `list-item ${p.id === appData.active_user_id ? 'active' : ''}`;
             div.onclick = () => switchUserPersona(p.id);
-            div.innerHTML = `
-                <img src="${p.avatar||DEF_USER_AVATAR}" class="avatar-sm">
-                <div style="flex:1;">
-                    <div style="font-weight:bold; font-size:0.9rem;">${p.name}</div>
-                    <div style="font-size:0.75rem; color:#888; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; width:150px;">${p.desc}</div>
-                </div>
-                <span class="persona-tag">当前使用</span>
-            `;
+            div.innerHTML = `<img src="${p.avatar||DEF_USER_AVATAR}" class="avatar-sm"><div style="flex:1;overflow:hidden;"><div style="font-weight:bold;font-size:0.9rem;">${p.name}</div></div><span class="persona-tag">USING</span>`;
             list.appendChild(div);
         });
-        
-        // 填充编辑区
-        const current = appData.user_personas.find(p => p.id === appData.active_user_id);
-        if(current) {
-            document.getElementById('userEditArea').style.display = 'block';
+        const current = getCurrentUser();
+        const editArea = document.getElementById('userEditArea');
+        if(current && current.id) {
+            editArea.style.display = 'block';
             document.getElementById('userName').value = current.name;
             document.getElementById('userAvatar').value = current.avatar;
             document.getElementById('userDesc').value = current.desc;
@@ -286,89 +503,73 @@
 
     function createNewUserPersona(render = true) {
         const newId = Date.now().toString();
-        const newP = {
-            id: newId,
-            name: "新身份 " + new Date().toLocaleTimeString().slice(0,5),
-            avatar: "",
-            desc: ""
-        };
-        appData.user_personas.push(newP);
+        appData.user_personas.push({ id: newId, name: "New User", avatar: "", desc: "A traveler." });
         appData.active_user_id = newId;
-        saveData();
-        if(render) renderUserList();
+        saveData(); if(render) renderUserList();
     }
-
-    function switchUserPersona(id) {
-        appData.active_user_id = id;
-        saveData();
-        renderUserList();
-        renderChatUI(); // 刷新聊天界面里的头像
-    }
-
+    function switchUserPersona(id) { appData.active_user_id = id; saveData(); renderUserList(); if(activeSessionId) renderChatUI(); }
     function saveCurrentUser() {
-        const current = appData.user_personas.find(p => p.id === appData.active_user_id);
-        if(!current) return;
-        current.name = document.getElementById('userName').value;
-        current.avatar = document.getElementById('userAvatar').value;
-        current.desc = document.getElementById('userDesc').value;
-        saveData();
-        renderUserList();
-        renderChatUI();
+        const c = appData.user_personas.find(p => p.id === appData.active_user_id);
+        if(!c) return;
+        c.name = document.getElementById('userName').value;
+        c.avatar = document.getElementById('userAvatar').value;
+        c.desc = document.getElementById('userDesc').value;
+        saveData(); renderUserList(); if(activeSessionId) renderChatUI();
     }
-
     function deleteUserPersona() {
         if(appData.user_personas.length <= 1) return alert("至少保留一个身份");
-        if(!confirm("删除此身份？")) return;
-        appData.user_personas = appData.user_personas.filter(p => p.id !== appData.active_user_id);
-        appData.active_user_id = appData.user_personas[0].id;
-        saveData();
-        renderUserList();
+        if(confirm("删除此身份？")) {
+            appData.user_personas = appData.user_personas.filter(p => p.id !== appData.active_user_id);
+            appData.active_user_id = appData.user_personas[0].id;
+            saveData(); renderUserList();
+        }
     }
+    function getCurrentUser() { return appData.user_personas.find(p => p.id === appData.active_user_id) || {}; }
 
-    function getCurrentUser() {
-        return appData.user_personas.find(p => p.id === appData.active_user_id) || {name:"User", avatar:"", desc:""};
-    }
-
-    /* --- 核心逻辑 --- */
+    /* --- 聊天逻辑 --- */
     function getCharData(cid) {
         if (!appData.chats[cid]) appData.chats[cid] = { sessions: {}, currentSessionId: null };
         return appData.chats[cid];
     }
-
-    function switchSession(sid) {
-        if (!activeCharId) return;
-        const cData = getCharData(activeCharId);
-        if(!cData.sessions[sid]) sid = createNewSession(activeCharId, false);
-        activeSessionId = sid;
-        cData.currentSessionId = sid;
-        saveData();
-        renderSessionSelect();
-        renderChatUI();
+    function loadChar(id) {
+        activeCharId = id;
+        const cData = getCharData(id);
+        document.getElementById('topControls').style.display = 'flex';
+        if(window.innerWidth <= 768) toggleSidebar();
+        if(Object.keys(cData.sessions).length === 0) createNewSession(id, false);
+        if(!cData.currentSessionId || !cData.sessions[cData.currentSessionId]) cData.currentSessionId = Object.keys(cData.sessions)[0];
+        switchSession(cData.currentSessionId); renderCharList();
     }
-
+    function switchSession(sid) {
+        activeSessionId = sid;
+        getCharData(activeCharId).currentSessionId = sid;
+        saveData(); renderSessionSelect(); renderChatUI();
+    }
     function createNewSession(charId = activeCharId, switchNow = true) {
         if(!charId) return;
-        const cData = getCharData(charId);
-        const char = appData.chars.find(c => c.id === charId);
         const newId = Date.now().toString();
-        cData.sessions[newId] = {
-            id: newId,
-            name: "新对话 " + new Date().toLocaleTimeString().slice(0,5),
+        const char = appData.chars.find(c => c.id === charId);
+        getCharData(charId).sessions[newId] = {
+            id: newId, name: "新对话 " + new Date().toLocaleTimeString().slice(0,5),
             messages: char.firstMsg ? [{role:'assistant', content:char.firstMsg, meta:{time:Date.now()}}] : []
         };
         if(switchNow) switchSession(newId);
         return newId;
     }
-
     function deleteCurrentSession() {
+        if(confirm("删除当前对话？")) {
+            delete getCharData(activeCharId).sessions[activeSessionId];
+            const remaining = Object.keys(getCharData(activeCharId).sessions);
+            if(remaining.length > 0) switchSession(remaining[0]); else createNewSession();
+            saveData();
+        }
+    }
+    function forkSession() {
         if(!activeCharId || !activeSessionId) return;
-        if(!confirm("删除当前对话？")) return;
-        const cData = getCharData(activeCharId);
-        delete cData.sessions[activeSessionId];
-        const remaining = Object.keys(cData.sessions);
-        if(remaining.length > 0) switchSession(remaining[0]);
-        else createNewSession();
-        saveData();
+        const oldS = getCharData(activeCharId).sessions[activeSessionId];
+        const newId = Date.now().toString();
+        getCharData(activeCharId).sessions[newId] = {...JSON.parse(JSON.stringify(oldS)), id: newId, name: oldS.name + "(分支)"};
+        switchSession(newId);
     }
 
     /* --- 消息发送 --- */
@@ -379,30 +580,23 @@
         if(!text) return;
 
         const session = appData.chats[activeCharId].sessions[activeSessionId];
-        const currentUser = getCurrentUser(); // 获取当前身份
-
-        // User Msg
-        const userMsg = { role: 'user', content: text, meta: { time: Date.now(), userName: currentUser.name, userAvatar: currentUser.avatar } };
+        const user = getCurrentUser();
+        const userMsg = { role: 'user', content: text, meta: { time: Date.now(), userName: user.name, userAvatar: user.avatar } };
         session.messages.push(userMsg);
         appendMsgUI(userMsg, true);
-        input.value = '';
-        saveData();
+        input.value = ''; input.style.height = '44px'; saveData();
 
+        // 自动命名第一个对话
         if(session.messages.filter(m=>m.role==='user').length === 1) {
-            session.name = text.substring(0, 10);
+            session.name = text.length > 10 ? text.substring(0, 10) : text;
             renderSessionSelect();
         }
 
-        // Build Prompt with Persona
         const char = appData.chars.find(c => c.id === activeCharId);
-        let system = `Role: ${char.name}\nDesc: ${char.desc}\nWorld: ${char.world||''}\n`;
-        // 关键：注入当前身份信息
-        system += `User Name: ${currentUser.name}\nUser Persona: ${currentUser.desc}`;
-        
-        const msgs = [{role:"system", content:system}, ...session.messages.slice(-15).map(m=>({role:m.role, content:m.content}))];
+        const sys = `Role:${char.name}\nDesc:${char.desc}\nWorld:${char.world||''}\nUser:${user.name}\nUserDesc:${user.desc}`;
+        const msgs = [{role: "system", content: sys}, ...session.messages.slice(-20).map(m => ({role: m.role, content: m.content}))];
 
-        const btn = document.querySelector('.send-btn');
-        btn.disabled = true;
+        document.querySelector('.send-btn').disabled = true;
         document.getElementById('stopBtn').style.display = 'block';
         const aiTempId = Date.now();
         appendMsgUI({role:'assistant', content:'<i class="fas fa-spinner fa-spin"></i>', meta:{time:Date.now()}}, false, aiTempId);
@@ -416,201 +610,158 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${appData.settings.apiKey}` },
                 body: JSON.stringify({
-                    model: getSelectedModel(),
-                    messages: msgs,
-                    temperature: parseFloat(appData.settings.temp),
-                    stream: appData.settings.stream
+                    model: getSelectedModel(), messages: msgs, temperature: parseFloat(appData.settings.temp), stream: true
                 }),
                 signal: abortCtrl.signal
             });
 
             if(!res.ok) throw new Error("API Error");
-
-            if(appData.settings.stream) {
-                const reader = res.body.getReader();
-                const decoder = new TextDecoder();
-                while(true) {
-                    const {done, value} = await reader.read();
-                    if(done) break;
-                    const lines = decoder.decode(value).split('\n');
-                    for(const line of lines) {
-                        if(line.startsWith('data: ')) {
-                            try {
-                                const delta = JSON.parse(line.slice(6)).choices[0].delta.content || "";
-                                fullReply += delta;
-                                updateMsgUI(aiTempId, fullReply);
-                            } catch(e){}
-                        }
+            
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            while(true) {
+                const {done, value} = await reader.read();
+                if(done) break;
+                const lines = decoder.decode(value).split('\n');
+                for(const line of lines) {
+                    if(line.startsWith('data: ') && line!=='data: [DONE]') {
+                        try {
+                            const delta = JSON.parse(line.slice(6)).choices[0].delta.content;
+                            if(delta) { fullReply += delta; updateMsgUI(aiTempId, fullReply); }
+                        } catch(e){}
                     }
                 }
-            } else {
-                const data = await res.json();
-                fullReply = data.choices[0].message.content;
-                updateMsgUI(aiTempId, fullReply);
             }
-
-            const tokenEst = Math.floor(fullReply.length / 2);
-            const aiMsg = { role: 'assistant', content: fullReply, meta: { time: Date.now(), tokens: tokenEst } };
+            
+            const aiMsg = { role: 'assistant', content: fullReply, meta: { time: Date.now() } };
             session.messages.push(aiMsg);
-            saveData();
-            updateMsgUI(aiTempId, fullReply, aiMsg.meta);
+            saveData(); updateMsgUI(aiTempId, fullReply, aiMsg.meta);
 
-        } catch(e) {
-            if(e.name!=='AbortError') updateMsgUI(aiTempId, "❌ " + e.message);
-        } finally {
-            btn.disabled = false;
+        } catch(e) { if(e.name!=='AbortError') updateMsgUI(aiTempId, "❌ " + e.message); }
+        finally {
+            document.querySelector('.send-btn').disabled = false;
             document.getElementById('stopBtn').style.display = 'none';
             abortCtrl = null;
         }
     }
 
-    /* --- UI 渲染 --- */
-    function loadChar(id) {
-        activeCharId = id;
-        const cData = getCharData(id);
-        document.getElementById('topControls').style.display = 'flex';
-        if(Object.keys(cData.sessions).length === 0) createNewSession(id, false);
-        if(!cData.currentSessionId || !cData.sessions[cData.currentSessionId]) cData.currentSessionId = Object.keys(cData.sessions)[0];
-        switchSession(cData.currentSessionId);
-        renderCharList();
-        if(window.innerWidth <= 768) toggleSidebar();
-    }
+    function stopGen() { if(abortCtrl) abortCtrl.abort(); }
 
+    /* --- UI Render --- */
     function renderChatUI() {
-        const container = document.getElementById('chatContainer');
-        container.innerHTML = '';
+        const c = document.getElementById('chatContainer'); c.innerHTML = '';
+        if(!activeSessionId) return;
         const session = appData.chats[activeCharId].sessions[activeSessionId];
         session.messages.forEach(m => appendMsgUI(m, m.role === 'user'));
         scrollToBottom();
     }
-
     function appendMsgUI(msg, isUser, tempId=null) {
-        const char = appData.chars.find(c=>c.id===activeCharId);
-        // 如果消息里存了当时的用户信息，就用当时的；否则用当前的
-        const currentUser = getCurrentUser();
-        
-        let name, avatar;
-        if(isUser) {
-            name = msg.meta?.userName || currentUser.name;
-            avatar = msg.meta?.userAvatar || currentUser.avatar;
-        } else {
-            name = char.name;
-            avatar = char.avatar;
-        }
-        
+        const char = appData.chars.find(c => c.id === activeCharId);
+        const user = getCurrentUser();
+        const name = isUser ? (msg.meta?.userName || user.name) : char.name;
+        const avatar = isUser ? (msg.meta?.userAvatar || user.avatar) : char.avatar;
         const div = document.createElement('div');
-        div.className = `msg-row ${isUser?'user':'char'}`;
+        div.className = `msg-row ${isUser ? 'user' : 'char'}`;
         if(tempId) div.id = `msg-${tempId}`;
-        
-        const timeStr = new Date(msg.meta?.time || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const tokenStr = msg.meta?.tokens ? ` · ~${msg.meta.tokens} tokens` : '';
-        
-        div.innerHTML = `
-            <img class="msg-avatar" src="${avatar||(isUser?DEF_USER_AVATAR:DEF_AVATAR)}" onerror="this.src='${isUser?DEF_USER_AVATAR:DEF_AVATAR}'">
-            <div class="msg-body">
-                <div style="font-size:0.8rem; color:#aaa; margin-bottom:2px;">${name}</div>
-                <div class="msg-bubble">${marked.parse(msg.content)}</div>
-                <div class="msg-meta">${timeStr}${tokenStr}</div>
-            </div>`;
+        div.innerHTML = `<img class="msg-avatar" src="${avatar}" onerror="this.src='${isUser?DEF_USER_AVATAR:DEF_AVATAR}'"><div class="msg-body"><div class="msg-name">${name}</div><div class="msg-bubble markdown-body">${marked.parse(msg.content)}</div></div>`;
         document.getElementById('chatContainer').appendChild(div);
     }
-
     function updateMsgUI(id, content, meta=null) {
         const div = document.getElementById(`msg-${id}`);
-        if(div) {
-            div.querySelector('.msg-bubble').innerHTML = marked.parse(content);
-            if(meta) {
-                 const timeStr = new Date(meta.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                 const tokenStr = ` · ~${meta.tokens} tokens`;
-                 div.querySelector('.msg-meta').innerHTML = `${timeStr}${tokenStr}`;
-            }
-            scrollToBottom();
-        }
+        if(div) { div.querySelector('.msg-bubble').innerHTML = marked.parse(content); scrollToBottom(); }
     }
-
     function renderSessionSelect() {
-        const cData = getCharData(activeCharId);
-        const sel = document.getElementById('sessionSelect');
-        sel.innerHTML = '';
-        Object.values(cData.sessions).sort((a,b)=>b.id-a.id).forEach(s => {
+        const sel = document.getElementById('sessionSelect'); sel.innerHTML = '';
+        Object.values(getCharData(activeCharId).sessions).sort((a,b) => b.id - a.id).forEach(s => {
             const opt = document.createElement('option');
-            opt.value = s.id; opt.text = s.name;
-            opt.selected = s.id === activeSessionId;
+            opt.value = s.id; opt.text = s.name; opt.selected = s.id === activeSessionId;
             sel.appendChild(opt);
         });
     }
 
-    /* --- 通用逻辑 (保留 v2 功能) --- */
-    function handleModelChange() {
-        const val = document.getElementById('modelSelect').value;
-        const customInput = document.getElementById('customModelInput');
-        customInput.style.display = val === 'custom' ? 'block' : 'none';
-        if(val==='custom') customInput.focus();
-        saveSettings();
+    /* --- 辅助 --- */
+    function fillSettingsUI() {
+        const s = appData.settings;
+        document.getElementById('apiHost').value = s.apiHost;
+        document.getElementById('apiKey').value = s.apiKey;
+        document.getElementById('temperature').value = s.temp;
+        document.getElementById('bgUrl').value = s.bgUrl;
+        const sel = document.getElementById('modelSelect');
+        if(![...sel.options].some(o=>o.value===s.model)) {
+             sel.value = 'custom'; document.getElementById('customModelInput').style.display='block'; document.getElementById('customModelInput').value=s.model;
+        } else sel.value = s.model;
     }
-    function getSelectedModel() { const sel = document.getElementById('modelSelect').value; return sel === 'custom' ? document.getElementById('customModelInput').value : sel; }
+    function saveSettings() {
+        const s = appData.settings;
+        s.apiHost = document.getElementById('apiHost').value;
+        s.apiKey = document.getElementById('apiKey').value;
+        s.temp = document.getElementById('temperature').value;
+        s.bgUrl = document.getElementById('bgUrl').value;
+        s.model = getSelectedModel();
+        saveData(); updateBg();
+    }
+    function updateBg() { document.body.style.backgroundImage = appData.settings.bgUrl ? `url('${appData.settings.bgUrl}')` : 'var(--bg-gradient)'; }
+    function getSelectedModel() { const v = document.getElementById('modelSelect').value; return v==='custom'?document.getElementById('customModelInput').value:v; }
+    function handleModelChange() { document.getElementById('customModelInput').style.display = document.getElementById('modelSelect').value==='custom'?'block':'none'; saveSettings(); }
     
     async function fetchModels() {
-        const host = document.getElementById('apiHost').value.replace(/\/v1$/, '');
-        const key = document.getElementById('apiKey').value;
-        if(!key) return alert("无 Key");
+        const host = document.getElementById('apiHost').value.replace(/\/v1\/?$/, '');
         try {
-            const res = await fetch(`${host}/v1/models`, {headers:{Authorization:`Bearer ${key}`}});
+            const res = await fetch(`${host}/v1/models`, {headers:{Authorization:`Bearer ${document.getElementById('apiKey').value}`}});
             const data = await res.json();
-            const sel = document.getElementById('modelSelect');
-            sel.innerHTML = ''; 
+            const sel = document.getElementById('modelSelect'); sel.innerHTML = '';
             data.data.forEach(m => { const opt = document.createElement('option'); opt.value = m.id; opt.text = m.id; sel.appendChild(opt); });
-            const cust = document.createElement('option'); cust.value = 'custom'; cust.text = '-- 自定义 --'; sel.appendChild(cust);
-            alert(`已更新 ${data.data.length} 个模型`);
-        } catch(e) { alert("拉取失败，请使用自定义模式"); }
+            sel.add(new Option('-- 自定义 --', 'custom'));
+            alert("模型列表已更新");
+        } catch(e) { alert("获取失败"); }
     }
 
-    function openCharEditor(cid=null) { document.getElementById('charModal').style.display='flex'; if(!cid) { document.getElementById('editId').value=''; document.getElementById('editName').value=''; } }
+    function renderCharList() {
+        const list = document.getElementById('charList'); list.innerHTML = '';
+        appData.chars.forEach(c => {
+            const div = document.createElement('div');
+            div.className = `list-item ${c.id === activeCharId ? 'active' : ''}`;
+            div.innerHTML = `<img src="${c.avatar || DEF_AVATAR}" class="avatar-sm"><div style="flex:1; font-weight:500;">${c.name}</div><button class="btn-ghost" onclick="event.stopPropagation(); editChar('${c.id}')"><i class="fas fa-cog"></i></button>`;
+            div.onclick = () => loadChar(c.id);
+            list.appendChild(div);
+        });
+    }
+    function openCharEditor() { document.getElementById('charModal').classList.add('active'); document.getElementById('editId').value=''; document.getElementById('editName').value=''; }
+    function editChar(id) {
+        const c = appData.chars.find(ch => ch.id === id);
+        document.getElementById('charModal').classList.add('active');
+        document.getElementById('editId').value = c.id; document.getElementById('editName').value = c.name;
+        document.getElementById('editAvatar').value = c.avatar; document.getElementById('editDesc').value = c.desc;
+        document.getElementById('editWorld').value = c.world || ''; document.getElementById('editFirst').value = c.firstMsg || '';
+    }
     function saveChar() {
-        const name = document.getElementById('editName').value;
-        if(!name) return alert("名字必填");
-        const newChar = { id: document.getElementById('editId').value || Date.now().toString(), name: name, avatar: document.getElementById('editAvatar').value, desc: document.getElementById('editDesc').value, world: document.getElementById('editWorld').value, firstMsg: document.getElementById('editFirst').value };
-        const idx = appData.chars.findIndex(c=>c.id===newChar.id);
-        if(idx >= 0) appData.chars[idx] = newChar; else appData.chars.push(newChar);
-        saveData(); renderCharList(); closeModal();
-        if(activeCharId===newChar.id) loadChar(newChar.id);
+        const id = document.getElementById('editId').value || Date.now().toString();
+        const newC = { id, name: document.getElementById('editName').value, avatar: document.getElementById('editAvatar').value, desc: document.getElementById('editDesc').value, world: document.getElementById('editWorld').value, firstMsg: document.getElementById('editFirst').value };
+        const idx = appData.chars.findIndex(c => c.id === id);
+        if(idx > -1) appData.chars[idx] = newC; else appData.chars.push(newC);
+        saveData(); renderCharList(); closeModal(); if(activeCharId===id) loadChar(id);
     }
     function deleteChar() {
         const id = document.getElementById('editId').value;
-        if(!id||!confirm("确定删除角色？")) return;
-        appData.chars = appData.chars.filter(c=>c.id !== id); delete appData.chats[id];
-        if(activeCharId === id) { activeCharId = null; document.getElementById('topControls').style.display='none'; document.getElementById('chatContainer').innerHTML='<div style="text-align:center;margin-top:50px;color:#666;">请选择角色</div>'; }
-        saveData(); renderCharList(); closeModal();
-    }
-
-    function saveData() { localStorage.setItem(DB_KEY, JSON.stringify(appData)); }
-    function loadData() {
-        const raw = localStorage.getItem(DB_KEY);
-        if(raw) {
-            const data = JSON.parse(raw);
-            appData = {...appData, ...data};
-            document.getElementById('apiHost').value = appData.settings.apiHost;
-            document.getElementById('apiKey').value = appData.settings.apiKey;
-            document.getElementById('temperature').value = appData.settings.temp;
-            document.getElementById('tempDisplay').innerText = appData.settings.temp;
-            document.getElementById('streamToggle').checked = appData.settings.stream;
-            // Model restore logic (same as v2)
-            const savedModel = appData.settings.model;
-            const sel = document.getElementById('modelSelect');
-            if(![...sel.options].some(o=>o.value===savedModel)) { sel.value = 'custom'; document.getElementById('customModelInput').style.display='block'; document.getElementById('customModelInput').value = savedModel; } else { sel.value = savedModel; }
+        if(confirm("确定删除？")) {
+            appData.chars = appData.chars.filter(c => c.id !== id); delete appData.chats[id];
+            saveData(); renderCharList(); closeModal();
+            if(activeCharId === id) { activeCharId=null; document.getElementById('topControls').style.display='none'; document.getElementById('chatContainer').innerHTML=''; }
         }
     }
-    function saveSettings() { appData.settings.apiHost=document.getElementById('apiHost').value; appData.settings.apiKey=document.getElementById('apiKey').value; appData.settings.model=getSelectedModel(); appData.settings.temp=document.getElementById('temperature').value; appData.settings.stream=document.getElementById('streamToggle').checked; appData.settings.bgUrl=document.getElementById('bgUrl').value; saveData(); }
-    function switchTab(t) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); event.currentTarget.classList.add('active'); }
-    function renderCharList() { const list = document.getElementById('charList'); list.innerHTML=''; appData.chars.forEach(c=>{ const div=document.createElement('div'); div.className=`list-item ${c.id===activeCharId?'active':''}`; div.innerHTML=`<img src="${c.avatar||DEF_AVATAR}" class="avatar-sm"><div>${c.name}</div><i class="fas fa-cog" style="margin-left:auto;color:#666" onclick="event.stopPropagation();document.getElementById('editId').value='${c.id}';document.getElementById('editName').value='${c.name}';document.getElementById('editAvatar').value='${c.avatar}';document.getElementById('editDesc').value='${c.desc.replace(/\n/g,'\\n')}';document.getElementById('editWorld').value='${(c.world||'').replace(/\n/g,'\\n')}';document.getElementById('editFirst').value='${c.firstMsg.replace(/\n/g,'\\n')}';openCharEditor('${c.id}')"></i>`; div.onclick=()=>loadChar(c.id); list.appendChild(div); }); }
-    function handleEnter(e) { if(e.ctrlKey && e.key === 'Enter') sendMessage(); }
-    function updateBg() { if(appData.settings.bgUrl) document.body.style.backgroundImage = `url('${appData.settings.bgUrl}')`; }
+    function closeModal() { document.getElementById('charModal').classList.remove('active'); }
+    function saveData() { localStorage.setItem(DB_KEY, JSON.stringify(appData)); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mobileOverlay').classList.toggle('active'); }
-    function closeModal() { document.getElementById('charModal').style.display='none'; }
-    function stopGen() { if(abortCtrl) abortCtrl.abort(); }
-    function forkSession() { if(activeCharId&&activeSessionId) { const oldS = getCharData(activeCharId).sessions[activeSessionId]; const newId=Date.now().toString(); getCharData(activeCharId).sessions[newId]={...JSON.parse(JSON.stringify(oldS)), id:newId, name:oldS.name+"(分支)"}; switchSession(newId); } }
-    function nukeData() { if(confirm("Clear All?")) { localStorage.clear(); location.reload(); } }
-    function scrollToBottom() { const c=document.getElementById('chatContainer'); c.scrollTop=c.scrollHeight; }
+    function switchTab(t) {
+        document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+        document.getElementById('tab-'+t).classList.add('active');
+        const navs = document.querySelectorAll('.nav-item');
+        if(t==='chars') navs[0].classList.add('active'); if(t==='user') navs[1].classList.add('active'); if(t==='settings') navs[2].classList.add('active');
+    }
+    function handleEnter(e) { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } e.target.style.height = 'auto'; e.target.style.height = (e.target.scrollHeight) + 'px'; }
+    function scrollToBottom() { const c = document.getElementById('chatContainer'); c.scrollTop = c.scrollHeight; }
+    function nukeData() { if(confirm("清空重置？")) { localStorage.removeItem(DB_KEY); location.reload(); } }
 </script>
 </body>
 </html>
